@@ -4,19 +4,20 @@ const pc = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY!,
 });
 
-const INDEX_NAME = "multitenant-memory";
+const MEMORY_INDEX = "multitenant-memory";
+const RAG_INDEX = "rag-knowledge-base";
 const DIMENSION = 1536;
 
-let indexReady = false;
+let memoryIndexReady = false;
 
-async function ensureIndex() {
-  if (indexReady) return;
+async function ensureMemoryIndex() {
+  if (memoryIndexReady) return;
   try {
     const list = await pc.listIndexes();
-    const exists = list.indexes?.some((idx) => idx.name === INDEX_NAME);
+    const exists = list.indexes?.some((idx) => idx.name === MEMORY_INDEX);
     if (!exists) {
       await pc.createIndex({
-        name: INDEX_NAME,
+        name: MEMORY_INDEX,
         dimension: DIMENSION,
         metric: "cosine",
         spec: {
@@ -26,19 +27,22 @@ async function ensureIndex() {
           },
         },
       });
-      // Wait for index to be ready
       await new Promise((resolve) => setTimeout(resolve, 5000));
     }
-    indexReady = true;
+    memoryIndexReady = true;
   } catch (error) {
-    console.error("Error ensuring index:", error);
-    indexReady = true; // Don't block on error, index might already exist
+    console.error("Error ensuring memory index:", error);
+    memoryIndexReady = true;
   }
 }
 
 export async function getIndex() {
-  await ensureIndex();
-  return pc.index(INDEX_NAME);
+  await ensureMemoryIndex();
+  return pc.index(MEMORY_INDEX);
+}
+
+export function getRagIndex() {
+  return pc.index(RAG_INDEX);
 }
 
 export async function upsertMemory(

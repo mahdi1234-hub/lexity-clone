@@ -2,13 +2,22 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
+
+interface MessageFile {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  preview?: string;
+}
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
+  files?: MessageFile[];
   timestamp: string;
 }
 
@@ -16,6 +25,147 @@ interface Conversation {
   id: string;
   lastMessage: string;
   timestamp: string;
+}
+
+interface PendingFile {
+  id: string;
+  name: string;
+  type: string;
+  mimeType: string;
+  size: number;
+  file: File;
+  preview?: string;
+}
+
+function detectFileType(filename: string, mimeType: string): string {
+  const ext = filename.toLowerCase().split(".").pop() || "";
+  if (ext === "pdf" || mimeType === "application/pdf") return "pdf";
+  if (ext === "docx" || ext === "doc" || mimeType.includes("wordprocessingml") || mimeType === "application/msword") return "docx";
+  if (ext === "xlsx" || ext === "xls" || mimeType.includes("spreadsheetml") || mimeType === "application/vnd.ms-excel") return "xlsx";
+  if (mimeType.startsWith("image/") || ["png", "jpg", "jpeg", "gif", "webp", "bmp", "svg"].includes(ext)) return "image";
+  if (mimeType.startsWith("video/") || ["mp4", "webm", "avi", "mov", "mkv"].includes(ext)) return "video";
+  if (mimeType.startsWith("text/") || ["txt", "csv", "json", "xml", "html", "css", "js", "ts", "md", "py", "java", "c", "cpp", "sql", "yaml", "yml", "log"].includes(ext)) return "text";
+  return "unknown";
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function FileIcon({ type, className = "w-4 h-4" }: { type: string; className?: string }) {
+  const colors: Record<string, string> = {
+    pdf: "#C48C56",
+    docx: "#8B7355",
+    xlsx: "#6B8E6B",
+    image: "#7B9EA8",
+    video: "#9B7BA8",
+    text: "#8B8B6B",
+    unknown: "#8B7B6B",
+  };
+  const color = colors[type] || colors.unknown;
+
+  if (type === "image") {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5">
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <circle cx="8.5" cy="8.5" r="1.5" />
+        <path d="M21 15l-5-5L5 21" />
+      </svg>
+    );
+  }
+  if (type === "video") {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5">
+        <rect x="2" y="4" width="16" height="16" rx="2" />
+        <path d="M22 8l-4 2.5v3L22 16V8z" />
+      </svg>
+    );
+  }
+  if (type === "xlsx") {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <path d="M14 2v6h6" />
+        <path d="M8 13h2v2H8zM12 13h2v2h-2zM8 17h2v2H8zM12 17h2v2h-2z" />
+      </svg>
+    );
+  }
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2v6h6" />
+      <path d="M16 13H8M16 17H8M10 9H8" />
+    </svg>
+  );
+}
+
+function FilePreviewCard({
+  file,
+  onRemove,
+  compact,
+}: {
+  file: { id: string; name: string; type: string; size: number; preview?: string };
+  onRemove?: (id: string) => void;
+  compact?: boolean;
+}) {
+  const bgColors: Record<string, string> = {
+    pdf: "bg-[#C48C56]/10 border-[#C48C56]/20",
+    docx: "bg-[#8B7355]/10 border-[#8B7355]/20",
+    xlsx: "bg-[#6B8E6B]/10 border-[#6B8E6B]/20",
+    image: "bg-[#7B9EA8]/10 border-[#7B9EA8]/20",
+    video: "bg-[#9B7BA8]/10 border-[#9B7BA8]/20",
+    text: "bg-[#8B8B6B]/10 border-[#8B8B6B]/20",
+    unknown: "bg-[#8B7B6B]/10 border-[#8B7B6B]/20",
+  };
+
+  if (compact) {
+    return (
+      <div className="flex items-center gap-1.5 text-xs opacity-70">
+        <FileIcon type={file.type} className="w-3.5 h-3.5" />
+        <span className="truncate max-w-[120px]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          {file.name}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`relative flex items-center gap-2.5 rounded-xl border p-2.5 backdrop-blur-sm ${bgColors[file.type] || bgColors.unknown}`}>
+      {file.type === "image" && file.preview ? (
+        <img src={file.preview} alt={file.name} className="h-10 w-10 rounded-lg object-cover" />
+      ) : (
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/40">
+          <FileIcon type={file.type} className="w-5 h-5" />
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium truncate opacity-80" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          {file.name}
+        </p>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className="text-[10px] uppercase tracking-wider opacity-50 font-medium" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            {file.type}
+          </span>
+          <span className="text-[10px] opacity-40">&middot;</span>
+          <span className="text-[10px] opacity-40" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            {formatFileSize(file.size)}
+          </span>
+        </div>
+      </div>
+      {onRemove && (
+        <button
+          onClick={() => onRemove(file.id)}
+          className="absolute -right-1.5 -top-1.5 w-5 h-5 flex items-center justify-center rounded-full bg-[#2C2824]/60 text-[#F2EFEA] hover:bg-[#2C2824]/80 transition-colors"
+        >
+          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
+          </svg>
+        </button>
+      )}
+    </div>
+  );
 }
 
 export default function ChatPage() {
@@ -27,8 +177,10 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -102,8 +254,39 @@ export default function ChatPage() {
     }
   };
 
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    const newFiles: PendingFile[] = selectedFiles.map((file) => {
+      const fileType = detectFileType(file.name, file.type);
+      const pendingFile: PendingFile = {
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: file.name,
+        type: fileType,
+        mimeType: file.type,
+        size: file.size,
+        file,
+      };
+      if (fileType === "image") {
+        pendingFile.preview = URL.createObjectURL(file);
+      }
+      return pendingFile;
+    });
+    setPendingFiles((prev) => [...prev, ...newFiles]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }, []);
+
+  const removeFile = useCallback((id: string) => {
+    setPendingFiles((prev) => {
+      const file = prev.find((f) => f.id === id);
+      if (file?.preview) URL.revokeObjectURL(file.preview);
+      return prev.filter((f) => f.id !== id);
+    });
+  }, []);
+
   const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+    if ((!input.trim() && pendingFiles.length === 0) || isLoading) return;
 
     let convId = currentConversationId;
     if (!convId) {
@@ -111,15 +294,27 @@ export default function ChatPage() {
       setCurrentConversationId(convId);
     }
 
+    const userFiles: MessageFile[] = pendingFiles.map((pf) => ({
+      id: pf.id,
+      name: pf.name,
+      type: pf.type,
+      size: pf.size,
+      preview: pf.preview,
+    }));
+
     const userMessage: Message = {
       id: uuidv4(),
       role: "user",
       content: input.trim(),
+      files: userFiles.length > 0 ? userFiles : undefined,
       timestamp: new Date().toISOString(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const currentInput = input;
+    const currentFiles = pendingFiles.map((pf) => pf.file);
     setInput("");
+    setPendingFiles([]);
     setIsLoading(true);
 
     if (textareaRef.current) {
@@ -127,13 +322,16 @@ export default function ChatPage() {
     }
 
     try {
+      const formData = new FormData();
+      formData.append("message", currentInput.trim());
+      formData.append("conversationId", convId);
+      for (const file of currentFiles) {
+        formData.append("files", file);
+      }
+
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: userMessage.content,
-          conversationId: convId,
-        }),
+        body: formData,
       });
 
       if (!res.ok) throw new Error("Failed to send message");
@@ -203,6 +401,27 @@ export default function ChatPage() {
       sendMessage();
     }
   };
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    const newFiles: PendingFile[] = droppedFiles.map((file) => {
+      const fileType = detectFileType(file.name, file.type);
+      const pendingFile: PendingFile = {
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: file.name,
+        type: fileType,
+        mimeType: file.type,
+        size: file.size,
+        file,
+      };
+      if (fileType === "image") {
+        pendingFile.preview = URL.createObjectURL(file);
+      }
+      return pendingFile;
+    });
+    setPendingFiles((prev) => [...prev, ...newFiles]);
+  }, []);
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
@@ -366,8 +585,30 @@ export default function ChatPage() {
                     className="text-sm opacity-50 font-light max-w-md"
                     style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                   >
-                    Start a conversation and I will remember everything we discuss. Your conversations are private and persistent.
+                    Start a conversation and I will remember everything we discuss. Upload any file and I will analyze it for you.
                   </p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-xl mt-8">
+                    {[
+                      { type: "pdf", label: "PDF Documents" },
+                      { type: "docx", label: "Word & Excel" },
+                      { type: "image", label: "Images" },
+                      { type: "video", label: "Videos" },
+                    ].map((item) => (
+                      <div key={item.type} className="card-flashlight p-3 text-center cursor-default">
+                        <div className="relative z-10">
+                          <div className="flex justify-center mb-2">
+                            <FileIcon type={item.type} className="w-6 h-6" />
+                          </div>
+                          <p
+                            className="text-xs opacity-60 font-light"
+                            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                          >
+                            {item.label}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -383,6 +624,14 @@ export default function ChatPage() {
                         : "card-flashlight bg-white/60 backdrop-blur-sm p-4 rounded-2xl rounded-bl-md"
                     }`}
                   >
+                    {/* File attachments on user messages */}
+                    {message.files && message.files.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {message.files.map((file) => (
+                          <FilePreviewCard key={file.id} file={file} compact />
+                        ))}
+                      </div>
+                    )}
                     <p
                       className="text-sm leading-relaxed whitespace-pre-wrap"
                       style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
@@ -403,15 +652,55 @@ export default function ChatPage() {
             </div>
           </div>
 
-          <div className="px-4 pb-4">
+          {/* File Previews */}
+          {pendingFiles.length > 0 && (
+            <div className="px-4">
+              <div className="max-w-3xl mx-auto">
+                <div className="flex flex-wrap gap-2 mb-2 p-3 bg-white/30 backdrop-blur-sm rounded-xl border border-black/5">
+                  {pendingFiles.map((file) => (
+                    <FilePreviewCard
+                      key={file.id}
+                      file={file}
+                      onRemove={removeFile}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Input Area */}
+          <div className="px-4 pb-4" onDrop={handleDrop} onDragOver={(e) => e.preventDefault()}>
             <div className="max-w-3xl mx-auto">
               <div className="card-flashlight flex items-end gap-3 p-3 bg-white/50 backdrop-blur-xl rounded-2xl">
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept=".pdf,.doc,.docx,.xlsx,.xls,.png,.jpg,.jpeg,.gif,.webp,.bmp,.svg,.mp4,.webm,.avi,.mov,.mkv,.txt,.csv,.json,.xml,.html,.css,.js,.ts,.md,.py,.java,.c,.cpp,.sql,.yaml,.yml,.log"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+
+                {/* Upload button */}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading}
+                  className="p-2.5 rounded-xl hover:bg-black/5 transition-all disabled:opacity-30 flex-shrink-0 group"
+                  title="Upload files"
+                >
+                  <svg className="w-4 h-4 opacity-50 group-hover:opacity-80 transition-opacity text-[#C48C56]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+
                 <textarea
                   ref={textareaRef}
                   value={input}
                   onChange={handleTextareaChange}
                   onKeyDown={handleKeyDown}
-                  placeholder="Type your message..."
+                  placeholder={pendingFiles.length > 0 ? "Add a message about your files..." : "Type your message..."}
                   rows={1}
                   className="flex-1 bg-transparent resize-none outline-none text-sm p-2 max-h-[200px] placeholder:opacity-40"
                   style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
@@ -419,12 +708,19 @@ export default function ChatPage() {
                 />
                 <button
                   onClick={sendMessage}
-                  disabled={!input.trim() || isLoading}
+                  disabled={(!input.trim() && pendingFiles.length === 0) || isLoading}
                   className="p-2.5 rounded-xl bg-[#2C2824] text-[#F2EFEA] transition-all hover:scale-105 disabled:opacity-30 disabled:hover:scale-100 flex-shrink-0"
                 >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+                  {isLoading ? (
+                    <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" opacity="0.3" />
+                      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
                 </button>
               </div>
             </div>
