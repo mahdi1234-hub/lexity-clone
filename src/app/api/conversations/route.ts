@@ -9,10 +9,10 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const userId = (session.user as any).id;
+  const userId = (session.user as { id?: string }).id;
 
   try {
-    const conversations = await listUserConversations(userId);
+    const conversations = await listUserConversations(userId!);
     return NextResponse.json({ conversations });
   } catch (error) {
     console.error("Error listing conversations:", error);

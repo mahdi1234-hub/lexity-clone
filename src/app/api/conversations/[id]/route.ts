@@ -12,10 +12,10 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const userId = (session.user as any).id;
+  const userId = (session.user as { id?: string }).id;
 
   try {
-    const messages = await getConversationMessages(userId, params.id);
+    const messages = await getConversationMessages(userId!, params.id);
     return NextResponse.json({ messages });
   } catch (error) {
     console.error("Error getting messages:", error);
@@ -32,10 +32,10 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const userId = (session.user as any).id;
+  const userId = (session.user as { id?: string }).id;
 
   try {
-    await deleteConversation(userId, params.id);
+    await deleteConversation(userId!, params.id);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting conversation:", error);

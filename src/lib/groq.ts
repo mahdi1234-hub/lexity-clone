@@ -31,7 +31,7 @@ export async function chatCompletion(
 ) {
   const response = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",
-    messages: messages as any,
+    messages: messages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
     stream,
     max_tokens: 2048,
     temperature: 0.7,

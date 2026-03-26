@@ -2,13 +2,11 @@
 
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 export default function LandingPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const cardsRef = useRef<NodeListOf<Element> | null>(null);
-
   useEffect(() => {
     if (session) {
       router.push("/chat");
