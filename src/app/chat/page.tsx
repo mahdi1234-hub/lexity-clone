@@ -1113,7 +1113,7 @@ export default function ChatPage() {
                 </div>
               )}
 
-              {/* Inline EDA Dashboard in Chat */
+              {/* Inline EDA Dashboard in Chat */}
               {edaDashboardData && (
                 <div className="flex justify-start">
                   <div className="w-full max-w-[95%]">
