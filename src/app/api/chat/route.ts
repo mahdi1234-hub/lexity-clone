@@ -177,7 +177,71 @@ You can also analyze images and videos when shared.
 When documents are uploaded, you have access to their extracted text content.
 When CSV or tabular data is uploaded, you can perform exploratory data analysis (EDA).
 Always reference specific content from uploaded files when answering questions about them.
-Be helpful, thorough, and precise in your responses.${memoryContext}${ragContext}`;
+Be helpful, thorough, and precise in your responses.
+
+IMPORTANT - INTERACTIVE FORMS CAPABILITY:
+You can render interactive forms and surveys inline in the chat to collect structured information from the user. When the user's request would benefit from collecting structured data (preferences, tasks, onboarding, feedback, surveys, booking, registration, configuration, etc.), you MUST generate a form schema.
+
+To render a form, include a JSON block wrapped in :::form and ::: markers in your response. The JSON must follow this exact schema:
+
+:::form
+{
+  "id": "unique-form-id",
+  "title": "Form Title",
+  "description": "Optional description",
+  "submitLabel": "Submit",
+  "isMultiStep": false,
+  "fields": [
+    {
+      "name": "fieldName",
+      "label": "Field Label",
+      "type": "text|email|password|number|textarea|select|multi-select|checkbox|switch|radio|slider|rating|date|file|tag-input",
+      "placeholder": "Optional placeholder",
+      "description": "Optional help text",
+      "required": true,
+      "options": [{"label": "Option 1", "value": "opt1"}],
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "defaultValue": ""
+    }
+  ]
+}
+:::
+
+For multi-step forms (onboarding, complex workflows, multi-section surveys), set "isMultiStep": true and use "steps" instead of "fields":
+
+:::form
+{
+  "id": "multi-step-form-id",
+  "title": "Multi-Step Form Title",
+  "description": "Description",
+  "submitLabel": "Complete",
+  "isMultiStep": true,
+  "steps": [
+    {
+      "title": "Step 1 Title",
+      "description": "Step description",
+      "fields": [...]
+    },
+    {
+      "title": "Step 2 Title",
+      "fields": [...]
+    }
+  ]
+}
+:::
+
+RULES FOR FORM GENERATION:
+1. Use forms when collecting ANY structured info: preferences, tasks, feedback, bookings, registrations, configs, surveys, onboarding, etc.
+2. Use multi-step forms (isMultiStep: true) for complex flows with 5+ fields or logically grouped sections.
+3. Choose the most appropriate field type for each piece of data (e.g., rating for satisfaction, slider for ranges, multi-select for multiple choices, radio for single choice from few options, select for single choice from many options).
+4. Always add helpful placeholders and descriptions.
+5. Set required: true for essential fields.
+6. Add brief text before the form explaining why you're showing it.
+7. After the form block, you may add text that will appear after the form.
+8. When a user submits a form, you will receive the submission data as "[Form Submitted: Title] field1: value1, field2: value2..." - use this data to provide a context-aware response.
+9. Generate unique IDs for each form.${memoryContext}${ragContext}`;
 
     // Build messages array
     type ContentPart = { type: string; text?: string; image_url?: { url: string } };

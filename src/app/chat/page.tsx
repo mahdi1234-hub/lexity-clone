@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
 import dynamic from "next/dynamic";
+import type { FormSchema, FormSubmissionData } from "@/types/form-schema";
 
 const EDADashboard = dynamic(() => import("@/components/EDADashboard"), { ssr: false });
 const GraphVisualization = dynamic(() => import("@/components/GraphVisualization"), { ssr: false });
+const DynamicFormRenderer = dynamic(() => import("@/components/DynamicFormRenderer"), { ssr: false });
 
 interface MessageFile {
   id: string;
@@ -23,6 +25,8 @@ interface Message {
   content: string;
   files?: MessageFile[];
   timestamp: string;
+  formSchemas?: FormSchema[];
+  formSubmitted?: Record<string, boolean>;
 }
 
 interface Conversation {
@@ -190,6 +194,7 @@ export default function ChatPage() {
   const [graphLoading, setGraphLoading] = useState(false);
   const [lastCsvFile, setLastCsvFile] = useState<File | null>(null);
   const [showCsvBanner, setShowCsvBanner] = useState(false);
+  const [submittedForms, setSubmittedForms] = useState<Record<string, boolean>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -434,6 +439,134 @@ export default function ChatPage() {
     });
     setPendingFiles((prev) => [...prev, ...newFiles]);
   }, []);
+
+  // Parse :::form blocks from AI response content
+  const parseMessageContent = useCallback((content: string): { textParts: string[]; formSchemas: FormSchema[] } => {
+    const formSchemas: FormSchema[] = [];
+    const textParts: string[] = [];
+    const formRegex = /:::form\s*([\s\S]*?):::/g;
+    let lastIndex = 0;
+    let match;
+
+    while ((match = formRegex.exec(content)) !== null) {
+      const before = content.slice(lastIndex, match.index).trim();
+      if (before) textParts.push(before);
+      try {
+        const schema = JSON.parse(match[1].trim()) as FormSchema;
+        formSchemas.push(schema);
+      } catch {
+        textParts.push(match[0]);
+      }
+      lastIndex = match.index + match[0].length;
+    }
+
+    const after = content.slice(lastIndex).trim();
+    if (after) textParts.push(after);
+    if (textParts.length === 0 && formSchemas.length === 0) textParts.push(content);
+
+    return { textParts, formSchemas };
+  }, []);
+
+  // Handle form submission - send data back to AI as context
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleFormSubmit = useCallback(async (data: FormSubmissionData, _messageId: string) => {
+    setSubmittedForms((prev) => ({ ...prev, [data.formId]: true }));
+
+    // Format submission data as a user message
+    const formattedValues = Object.entries(data.values)
+      .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(", ") : value}`)
+      .join(", ");
+
+    const submissionMessage = `[Form Submitted: ${data.formTitle}] ${formattedValues}`;
+
+    // Send the form data as a new message to the AI
+    let convId = currentConversationId;
+    if (!convId) {
+      convId = uuidv4();
+      setCurrentConversationId(convId);
+    }
+
+    const userMessage: Message = {
+      id: uuidv4(),
+      role: "user",
+      content: submissionMessage,
+      timestamp: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setIsLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("message", submissionMessage);
+      formData.append("conversationId", convId);
+
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Failed to send form data");
+
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+
+      const assistantMessage: Message = {
+        id: uuidv4(),
+        role: "assistant",
+        content: "",
+        timestamp: new Date().toISOString(),
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+
+      while (reader) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const text = decoder.decode(value);
+        const lines = text.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const lineData = line.slice(6);
+            if (lineData === "[DONE]") break;
+            try {
+              const parsed = JSON.parse(lineData);
+              if (parsed.content) {
+                assistantMessage.content += parsed.content;
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === assistantMessage.id
+                      ? { ...m, content: assistantMessage.content }
+                      : m
+                  )
+                );
+              }
+            } catch {
+              // ignore parse errors
+            }
+          }
+        }
+      }
+
+      fetchConversations();
+    } catch (error) {
+      console.error("Error sending form data:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: uuidv4(),
+          role: "assistant",
+          content: "I received your form submission but encountered an error processing it. Please try again.",
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentConversationId]);
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
@@ -699,42 +832,71 @@ export default function ChatPage() {
                 </div>
               )}
 
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[80%] ${
-                      message.role === "user"
-                        ? "card-flashlight bg-[#2C2824]/90 text-[#F2EFEA] p-4 rounded-2xl rounded-br-md"
-                        : "card-flashlight bg-white/60 backdrop-blur-sm p-4 rounded-2xl rounded-bl-md"
-                    }`}
-                  >
-                    {/* File attachments on user messages */}
-                    {message.files && message.files.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mb-2">
-                        {message.files.map((file) => (
-                          <FilePreviewCard key={file.id} file={file} compact />
-                        ))}
-                      </div>
-                    )}
-                    <p
-                      className="text-sm leading-relaxed whitespace-pre-wrap"
-                      style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              {messages.map((message) => {
+                const { textParts, formSchemas: parsedForms } = parseMessageContent(message.content);
+                return (
+                  <div key={message.id}>
+                    <div
+                      className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                     >
-                      {message.content}
-                      {message.role === "assistant" && isLoading && message.id === messages[messages.length - 1]?.id && !message.content && (
-                        <span className="inline-flex gap-1 ml-1">
-                          <span className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></span>
-                          <span className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></span>
-                          <span className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></span>
-                        </span>
-                      )}
-                    </p>
+                      <div
+                        className={`max-w-[80%] ${
+                          message.role === "user"
+                            ? "card-flashlight bg-[#2C2824]/90 text-[#F2EFEA] p-4 rounded-2xl rounded-br-md"
+                            : "card-flashlight bg-white/60 backdrop-blur-sm p-4 rounded-2xl rounded-bl-md"
+                        }`}
+                      >
+                        {/* File attachments on user messages */}
+                        {message.files && message.files.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mb-2">
+                            {message.files.map((file) => (
+                              <FilePreviewCard key={file.id} file={file} compact />
+                            ))}
+                          </div>
+                        )}
+                        <p
+                          className="text-sm leading-relaxed whitespace-pre-wrap"
+                          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                        >
+                          {textParts.join("\n")}
+                          {message.role === "assistant" && isLoading && message.id === messages[messages.length - 1]?.id && !message.content && (
+                            <span className="inline-flex gap-1 ml-1">
+                              <span className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></span>
+                              <span className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></span>
+                              <span className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></span>
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Render inline forms from AI response */}
+                    {message.role === "assistant" && parsedForms.length > 0 && parsedForms.map((formSchema) => (
+                      <div key={formSchema.id} className="flex justify-start mt-3">
+                        {submittedForms[formSchema.id] ? (
+                          <div className="w-full max-w-[95%] card-flashlight bg-white/70 backdrop-blur-xl rounded-2xl border border-[#C48C56]/20 p-4">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-full bg-[#C48C56]/20 flex items-center justify-center">
+                                <svg className="w-3.5 h-3.5 text-[#C48C56]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <polyline points="20 6 9 17 4 12" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              </div>
+                              <p className="text-sm opacity-70" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                                <span className="font-medium">{formSchema.title}</span> submitted successfully
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <DynamicFormRenderer
+                            schema={formSchema}
+                            onSubmit={(data) => handleFormSubmit(data, message.id)}
+                          />
+                        )}
+                      </div>
+                    ))}
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               {/* Inline EDA Dashboard in Chat */}
               {edaDashboardData && (
