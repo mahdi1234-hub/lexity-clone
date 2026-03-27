@@ -6,6 +6,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
 import dynamic from "next/dynamic";
 import type { FormSchema, FormSubmissionData } from "@/types/form-schema";
+import WebSearchResults from "@/components/WebSearchResults";
 
 const EDADashboard = dynamic(() => import("@/components/EDADashboard"), { ssr: false });
 const GraphVisualization = dynamic(() => import("@/components/GraphVisualization"), { ssr: false });
@@ -207,6 +208,16 @@ export default function ChatPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [geoVisualizations, setGeoVisualizations] = useState<any[]>([]);
   const [geoLoading, setGeoLoading] = useState(false);
+  // Web search state
+  const [webSearchActive, setWebSearchActive] = useState(false);
+  const [webSearchSources, setWebSearchSources] = useState<{url:string;title:string;description?:string;content?:string;markdown?:string;favicon?:string;image?:string;siteName?:string}[]>([]);
+  const [webSearchNews, setWebSearchNews] = useState<{url:string;title:string;description?:string;publishedDate?:string;source?:string;image?:string}[]>([]);
+  const [webSearchImages, setWebSearchImages] = useState<{url:string;title:string;thumbnail?:string;source?:string}[]>([]);
+  const [webSearchAnswer, setWebSearchAnswer] = useState("");
+  const [webSearchFollowUps, setWebSearchFollowUps] = useState<string[]>([]);
+  const [webSearchStatus, setWebSearchStatus] = useState("");
+  const [webSearchStreaming, setWebSearchStreaming] = useState(false);
+  const [webSearchQuery, setWebSearchQuery] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -691,6 +702,87 @@ export default function ChatPage() {
     }
   };
 
+  // Web search trigger
+  const triggerWebSearch = async (query: string) => {
+    if (!query.trim() || webSearchStreaming) return;
+    setWebSearchActive(true);
+    setWebSearchSources([]);
+    setWebSearchNews([]);
+    setWebSearchImages([]);
+    setWebSearchAnswer("");
+    setWebSearchFollowUps([]);
+    setWebSearchStatus("Searching the web...");
+    setWebSearchStreaming(true);
+    setWebSearchQuery(query);
+
+    try {
+      const conversationHistory = messages.slice(-6).map((m) => ({ role: m.role, content: m.content }));
+      const res = await fetch("/api/web-search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, conversationHistory }),
+      });
+
+      if (!res.ok) throw new Error("Web search failed");
+
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (reader) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const parsed = JSON.parse(line.slice(6));
+            const { event, data } = parsed;
+            if (event === "status") setWebSearchStatus(data.message);
+            else if (event === "sources") {
+              setWebSearchSources(data.sources || []);
+              setWebSearchNews(data.newsResults || []);
+              setWebSearchImages(data.imageResults || []);
+            }
+            else if (event === "content") setWebSearchAnswer((prev) => prev + data.content);
+            else if (event === "followup") setWebSearchFollowUps(data.questions || []);
+            else if (event === "error") {
+              setWebSearchStatus("Error: " + data.message);
+              setWebSearchStreaming(false);
+            }
+            else if (event === "done") setWebSearchStreaming(false);
+          } catch { /* ignore parse errors */ }
+        }
+      }
+    } catch (error) {
+      console.error("Web search error:", error);
+      setWebSearchStatus("Search failed. Please try again.");
+    } finally {
+      setWebSearchStreaming(false);
+    }
+  };
+
+  const handleWebSearchFollowUp = useCallback((question: string) => {
+    triggerWebSearch(question);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages]);
+
+  const closeWebSearch = () => {
+    setWebSearchActive(false);
+    setWebSearchSources([]);
+    setWebSearchNews([]);
+    setWebSearchImages([]);
+    setWebSearchAnswer("");
+    setWebSearchFollowUps([]);
+    setWebSearchStatus("");
+    setWebSearchStreaming(false);
+    setWebSearchQuery("");
+  };
+
   // Geospatial / Solar / Site analytics trigger
   const triggerGeospatial = async (query: string) => {
     if (geoLoading) return;
@@ -984,7 +1076,44 @@ export default function ChatPage() {
                 );
               })}
 
-              {/* Inline EDA Dashboard in Chat */}
+              {/* Web Search Results */}
+              {webSearchActive && (
+                <div className="flex justify-start animate-fadeUp">
+                  <div className="w-full max-w-[95%] card-flashlight bg-white/60 backdrop-blur-sm p-5 rounded-2xl rounded-bl-md">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-[#C48C56]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="11" cy="11" r="8" />
+                          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                        <span className="text-xs font-medium text-[#2C2824]/60" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          Web Search: {webSearchQuery}
+                        </span>
+                      </div>
+                      <button
+                        onClick={closeWebSearch}
+                        className="p-1 rounded-lg hover:bg-black/5 transition-colors"
+                      >
+                        <svg className="w-3.5 h-3.5 opacity-40 hover:opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
+                        </svg>
+                      </button>
+                    </div>
+                    <WebSearchResults
+                      sources={webSearchSources}
+                      newsResults={webSearchNews}
+                      imageResults={webSearchImages}
+                      answer={webSearchAnswer}
+                      followUpQuestions={webSearchFollowUps}
+                      searchStatus={webSearchStatus}
+                      isStreaming={webSearchStreaming}
+                      onFollowUpClick={handleWebSearchFollowUp}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Inline EDA Dashboard in Chat */
               {edaDashboardData && (
                 <div className="flex justify-start">
                   <div className="w-full max-w-[95%]">
@@ -1138,9 +1267,30 @@ export default function ChatPage() {
             </div>
           )}
 
-          {/* Action Buttons (Graph + Geo) */}
+          {/* Action Buttons (Web Search + Graph + Geo) */}
           <div className="px-4 pb-2">
             <div className="max-w-3xl mx-auto flex items-center justify-center gap-2">
+              {/* Web Search - always visible */}
+              <button
+                onClick={() => {
+                  if (input.trim()) {
+                    triggerWebSearch(input.trim());
+                  } else {
+                    const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
+                    if (lastUserMsg) triggerWebSearch(lastUserMsg.content);
+                  }
+                }}
+                disabled={webSearchStreaming || (!input.trim() && messages.length === 0)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#2C2824]/60 hover:text-[#C48C56] hover:bg-[#C48C56]/10 rounded-lg transition-all disabled:opacity-40"
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                title="Search the web with AI"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                {webSearchStreaming ? "Searching..." : "Web Search"}
+              </button>
               {messages.length > 0 && (
                 <>
                   <button
