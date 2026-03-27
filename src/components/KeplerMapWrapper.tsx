@@ -427,10 +427,6 @@ export default function KeplerMapWrapper({ config, onClose, inline }: KeplerMapW
     setLayers(prev => prev.map(l => l.id === id ? { ...l, visible: !l.visible } : l));
   }, []);
 
-  const changeLayerColor = useCallback((id: string, color: [number, number, number]) => {
-    setLayers(prev => prev.map(l => l.id === id ? { ...l, color } : l));
-  }, []);
-
   const handleFilterChange = useCallback((index: number, value: [number, number] | string[]) => {
     setFilters(prev => prev.map((f, i) => i === index ? { ...f, value } : f));
   }, []);
