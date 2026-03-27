@@ -735,6 +735,16 @@ export default function ChatPage() {
                   </div>
                 </div>
               ))}
+
+              {/* Inline EDA Dashboard in Chat */}
+              {edaDashboardData && (
+                <div className="flex justify-start">
+                  <div className="w-full max-w-[95%]">
+                    <EDADashboard data={edaDashboardData} onClose={() => setEdaDashboardData(null)} inline={true} />
+                  </div>
+                </div>
+              )}
+
               <div ref={messagesEndRef} />
             </div>
           </div>
@@ -871,10 +881,7 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* EDA Dashboard Overlay */}
-      {edaDashboardData && (
-        <EDADashboard data={edaDashboardData} onClose={() => setEdaDashboardData(null)} />
-      )}
+      {/* EDA Dashboard Fullscreen Overlay (accessible via double-click on inline) */}
 
       {/* Graph Visualization Overlay */}
       {graphData && (
