@@ -490,7 +490,7 @@ export default function KeplerMapWrapper({ config, onClose, inline }: KeplerMapW
 
             <div className="flex-1 overflow-y-auto p-3">
               {activePanel === "layers" && (
-                <KeplerLayerPanel layers={layers} onToggle={toggleLayer} onColorChange={changeLayerColor} />
+                <KeplerLayerPanel layers={layers} onToggle={toggleLayer} />
               )}
               {activePanel === "filters" && (
                 filters.length > 0 ? (
