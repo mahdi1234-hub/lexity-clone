@@ -11,6 +11,10 @@ const EDADashboard = dynamic(() => import("@/components/EDADashboard"), { ssr: f
 const GraphVisualization = dynamic(() => import("@/components/GraphVisualization"), { ssr: false });
 const DynamicFormRenderer = dynamic(() => import("@/components/DynamicFormRenderer"), { ssr: false });
 const AutoMLDashboard = dynamic(() => import("@/components/AutoMLDashboard"), { ssr: false });
+const DeckGLMap = dynamic(() => import("@/components/DeckGLMap"), { ssr: false });
+const KeplerMapWrapper = dynamic(() => import("@/components/KeplerMapWrapper"), { ssr: false });
+const SolarAnalytics = dynamic(() => import("@/components/SolarAnalytics"), { ssr: false });
+const SiteAnalytics = dynamic(() => import("@/components/SiteAnalytics"), { ssr: false });
 
 interface MessageFile {
   id: string;
@@ -200,6 +204,9 @@ export default function ChatPage() {
   const [automlUploadResult, setAutomlUploadResult] = useState<any>(null);
   const [automlSessionId, setAutomlSessionId] = useState<string>("");
   const [automlLoading, setAutomlLoading] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [geoVisualizations, setGeoVisualizations] = useState<any[]>([]);
+  const [geoLoading, setGeoLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -684,6 +691,50 @@ export default function ChatPage() {
     }
   };
 
+  // Geospatial / Solar / Site analytics trigger
+  const triggerGeospatial = async (query: string) => {
+    if (geoLoading) return;
+    setGeoLoading(true);
+    try {
+      const conversationContext = messages
+        .slice(-6)
+        .map((m) => `${m.role}: ${m.content}`)
+        .join("\n");
+      const res = await fetch("/api/geospatial", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, conversationContext }),
+      });
+      if (!res.ok) throw new Error("Geospatial analysis failed");
+      const data = await res.json();
+      setGeoVisualizations((prev) => [...prev, { id: uuidv4(), ...data }]);
+    } catch (error) {
+      console.error("Geospatial error:", error);
+    } finally {
+      setGeoLoading(false);
+    }
+  };
+
+  // Auto-detect geospatial/solar queries from AI responses
+  useEffect(() => {
+    if (messages.length === 0) return;
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg.role !== "assistant" || !lastMsg.content) return;
+    const content = lastMsg.content;
+    // Detect geo/solar/map trigger tags from AI
+    const geoMatch = content.match(/:::geo(?:spatial)?\s*([\s\S]*?):::/i);
+    if (geoMatch) {
+      try {
+        const geoConfig = JSON.parse(geoMatch[1].trim());
+        setGeoVisualizations((prev) => [...prev, { id: uuidv4(), ...geoConfig }]);
+      } catch {
+        // Try treating it as a query
+        triggerGeospatial(geoMatch[1].trim());
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages]);
+
   if (status === "loading") {
     return (
       <div className="min-h-screen bg-[#F2EFEA] flex items-center justify-center">
@@ -942,6 +993,39 @@ export default function ChatPage() {
                 </div>
               )}
 
+              {/* Inline Geospatial / Solar / Site Visualizations */}
+              {geoVisualizations.map((viz) => (
+                <div key={viz.id} className="flex justify-start mt-3">
+                  <div className="w-full max-w-[95%]">
+                    {viz.type === "deckgl" && viz.config && (
+                      <DeckGLMap config={viz.config} onClose={() => setGeoVisualizations((prev) => prev.filter((v) => v.id !== viz.id))} inline />
+                    )}
+                    {viz.type === "kepler" && viz.config && (
+                      <KeplerMapWrapper config={viz.config} onClose={() => setGeoVisualizations((prev) => prev.filter((v) => v.id !== viz.id))} inline />
+                    )}
+                    {viz.type === "solar" && viz.data && (
+                      <SolarAnalytics data={viz.data} onClose={() => setGeoVisualizations((prev) => prev.filter((v) => v.id !== viz.id))} inline />
+                    )}
+                    {viz.type === "site" && viz.data && (
+                      <SiteAnalytics data={viz.data} onClose={() => setGeoVisualizations((prev) => prev.filter((v) => v.id !== viz.id))} inline />
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {/* Geospatial loading indicator */}
+              {geoLoading && (
+                <div className="flex justify-start mt-3">
+                  <div className="flex items-center gap-2 px-4 py-3 bg-white/60 backdrop-blur-sm rounded-2xl border border-[#C48C56]/20">
+                    <svg className="w-4 h-4 animate-spin text-[#C48C56]" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" opacity="0.3" />
+                      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                    <span className="text-xs text-[#2C2824]/60" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Generating visualization...</span>
+                  </div>
+                </div>
+              )}
+
               <div ref={messagesEndRef} />
             </div>
           </div>
@@ -1054,23 +1138,41 @@ export default function ChatPage() {
             </div>
           )}
 
-          {/* Action Buttons (Graph + EDA) */}
+          {/* Action Buttons (Graph + Geo) */}
           <div className="px-4 pb-2">
             <div className="max-w-3xl mx-auto flex items-center justify-center gap-2">
               {messages.length > 0 && (
-                <button
-                  onClick={triggerGraph}
-                  disabled={graphLoading}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#2C2824]/60 hover:text-[#C48C56] hover:bg-[#C48C56]/10 rounded-lg transition-all disabled:opacity-40"
-                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                  title="Generate knowledge graph from conversation"
-                >
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="5" r="3" /><circle cx="5" cy="19" r="3" /><circle cx="19" cy="19" r="3" />
-                    <line x1="12" y1="8" x2="5" y2="16" /><line x1="12" y1="8" x2="19" y2="16" />
-                  </svg>
-                  {graphLoading ? "Generating..." : "Graph View"}
-                </button>
+                <>
+                  <button
+                    onClick={triggerGraph}
+                    disabled={graphLoading}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#2C2824]/60 hover:text-[#C48C56] hover:bg-[#C48C56]/10 rounded-lg transition-all disabled:opacity-40"
+                    style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                    title="Generate knowledge graph from conversation"
+                  >
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="5" r="3" /><circle cx="5" cy="19" r="3" /><circle cx="19" cy="19" r="3" />
+                      <line x1="12" y1="8" x2="5" y2="16" /><line x1="12" y1="8" x2="19" y2="16" />
+                    </svg>
+                    {graphLoading ? "Generating..." : "Graph View"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
+                      if (lastUserMsg) triggerGeospatial(lastUserMsg.content);
+                    }}
+                    disabled={geoLoading}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#2C2824]/60 hover:text-[#C48C56] hover:bg-[#C48C56]/10 rounded-lg transition-all disabled:opacity-40"
+                    style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                    title="Generate geospatial / solar / site visualization"
+                  >
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    {geoLoading ? "Generating..." : "Map View"}
+                  </button>
+                </>
               )}
             </div>
           </div>
