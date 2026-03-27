@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
         };
 
         // Extract text from text-based files
-        if (["pdf", "docx", "xlsx", "text"].includes(fileType)) {
+        if (["pdf", "docx", "xlsx", "csv", "tsv", "json", "xml", "markdown", "yaml", "html", "text"].includes(fileType)) {
           try {
             const text = await extractTextFromFile(buffer, fileType);
             if (text) {
@@ -172,9 +172,10 @@ export async function POST(req: NextRequest) {
 
     // Build system prompt
     const systemPrompt = `You are a helpful, intelligent AI assistant. You have a warm and professional tone. You remember past conversations with this user and can reference them when relevant.
-You can analyze documents (PDF, DOCX, XLSX, text files), images, and videos.
+You can analyze documents in many formats: PDF, DOCX, XLSX, CSV, TSV, JSON, XML, YAML, Markdown, HTML, and plain text files.
+You can also analyze images and videos when shared.
 When documents are uploaded, you have access to their extracted text content.
-When images are shared, you can see and analyze them in detail.
+When CSV or tabular data is uploaded, you can perform exploratory data analysis (EDA).
 Always reference specific content from uploaded files when answering questions about them.
 Be helpful, thorough, and precise in your responses.${memoryContext}${ragContext}`;
 

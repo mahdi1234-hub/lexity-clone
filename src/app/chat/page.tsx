@@ -4,6 +4,10 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
+import dynamic from "next/dynamic";
+
+const EDADashboard = dynamic(() => import("@/components/EDADashboard"), { ssr: false });
+const GraphVisualization = dynamic(() => import("@/components/GraphVisualization"), { ssr: false });
 
 interface MessageFile {
   id: string;
@@ -178,6 +182,14 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [edaDashboardData, setEdaDashboardData] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [graphData, setGraphData] = useState<any>(null);
+  const [edaLoading, setEdaLoading] = useState(false);
+  const [graphLoading, setGraphLoading] = useState(false);
+  const [lastCsvFile, setLastCsvFile] = useState<File | null>(null);
+  const [showCsvBanner, setShowCsvBanner] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -427,6 +439,81 @@ export default function ChatPage() {
     setInput(e.target.value);
     e.target.style.height = "auto";
     e.target.style.height = Math.min(e.target.scrollHeight, 200) + "px";
+  };
+
+  // Detect CSV files in pending uploads
+  useEffect(() => {
+    const csvFile = pendingFiles.find((f) => {
+      const ext = f.name.toLowerCase().split(".").pop();
+      return ext === "csv" || ext === "tsv";
+    });
+    if (csvFile) {
+      setLastCsvFile(csvFile.file);
+      setShowCsvBanner(true);
+    } else {
+      setShowCsvBanner(false);
+    }
+  }, [pendingFiles]);
+
+  const triggerEDA = async () => {
+    if (!lastCsvFile || edaLoading) return;
+    setEdaLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", lastCsvFile);
+      const res = await fetch("/api/eda", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("EDA analysis failed");
+      const data = await res.json();
+      setEdaDashboardData(data.dashboard || data);
+    } catch (error) {
+      console.error("EDA error:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: uuidv4(),
+          role: "assistant",
+          content: "Failed to generate EDA dashboard. Please try again.",
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    } finally {
+      setEdaLoading(false);
+    }
+  };
+
+  const triggerGraph = async () => {
+    if (graphLoading) return;
+    setGraphLoading(true);
+    try {
+      const conversationHistory = messages
+        .map((m) => `${m.role}: ${m.content}`)
+        .join("\n")
+        .slice(-3000);
+      const res = await fetch("/api/graph", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: "Generate a knowledge graph from this conversation",
+          conversationHistory,
+        }),
+      });
+      if (!res.ok) throw new Error("Graph generation failed");
+      const data = await res.json();
+      setGraphData(data.graph);
+    } catch (error) {
+      console.error("Graph error:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: uuidv4(),
+          role: "assistant",
+          content: "Failed to generate graph visualization. Please try again.",
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    } finally {
+      setGraphLoading(false);
+    }
   };
 
   if (status === "loading") {
@@ -726,6 +813,53 @@ export default function ChatPage() {
             </div>
           </div>
 
+          {/* CSV EDA Banner */}
+          {showCsvBanner && (
+            <div className="px-4 pb-2">
+              <div className="max-w-3xl mx-auto">
+                <div className="flex items-center gap-3 p-3 bg-[#C48C56]/10 border border-[#C48C56]/20 rounded-xl backdrop-blur-sm">
+                  <svg className="w-5 h-5 text-[#C48C56] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <path d="M14 2v6h6" />
+                    <path d="M8 13h2v2H8zM12 13h2v2h-2zM8 17h2v2H8zM12 17h2v2h-2z" />
+                  </svg>
+                  <p className="flex-1 text-xs text-[#2C2824]/70" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    CSV file detected! Generate an interactive EDA dashboard?
+                  </p>
+                  <button
+                    onClick={triggerEDA}
+                    disabled={edaLoading}
+                    className="px-3 py-1.5 text-xs font-medium bg-[#C48C56] text-white rounded-lg hover:bg-[#B07A48] transition-colors disabled:opacity-50"
+                    style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  >
+                    {edaLoading ? "Analyzing..." : "Generate Dashboard"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons (Graph + EDA) */}
+          <div className="px-4 pb-2">
+            <div className="max-w-3xl mx-auto flex items-center justify-center gap-2">
+              {messages.length > 0 && (
+                <button
+                  onClick={triggerGraph}
+                  disabled={graphLoading}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#2C2824]/60 hover:text-[#C48C56] hover:bg-[#C48C56]/10 rounded-lg transition-all disabled:opacity-40"
+                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  title="Generate knowledge graph from conversation"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="5" r="3" /><circle cx="5" cy="19" r="3" /><circle cx="19" cy="19" r="3" />
+                    <line x1="12" y1="8" x2="5" y2="16" /><line x1="12" y1="8" x2="19" y2="16" />
+                  </svg>
+                  {graphLoading ? "Generating..." : "Graph View"}
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="px-4 pb-3">
             <p
               className="text-center text-xs opacity-40 font-light"
@@ -736,6 +870,18 @@ export default function ChatPage() {
           </div>
         </div>
       </div>
+
+      {/* EDA Dashboard Overlay */}
+      {edaDashboardData && (
+        <EDADashboard data={edaDashboardData} onClose={() => setEdaDashboardData(null)} />
+      )}
+
+      {/* Graph Visualization Overlay */}
+      {graphData && (
+        <div className="fixed inset-0 z-50 bg-[#F2EFEA]/95 backdrop-blur-sm">
+          <GraphVisualization data={graphData} onClose={() => setGraphData(null)} />
+        </div>
+      )}
     </div>
   );
 }
