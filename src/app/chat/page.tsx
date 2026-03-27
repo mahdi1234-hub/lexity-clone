@@ -10,6 +10,7 @@ import type { FormSchema, FormSubmissionData } from "@/types/form-schema";
 const EDADashboard = dynamic(() => import("@/components/EDADashboard"), { ssr: false });
 const GraphVisualization = dynamic(() => import("@/components/GraphVisualization"), { ssr: false });
 const DynamicFormRenderer = dynamic(() => import("@/components/DynamicFormRenderer"), { ssr: false });
+const AutoMLDashboard = dynamic(() => import("@/components/AutoMLDashboard"), { ssr: false });
 
 interface MessageFile {
   id: string;
@@ -195,6 +196,10 @@ export default function ChatPage() {
   const [lastCsvFile, setLastCsvFile] = useState<File | null>(null);
   const [showCsvBanner, setShowCsvBanner] = useState(false);
   const [submittedForms, setSubmittedForms] = useState<Record<string, boolean>>({});
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [automlUploadResult, setAutomlUploadResult] = useState<any>(null);
+  const [automlSessionId, setAutomlSessionId] = useState<string>("");
+  const [automlLoading, setAutomlLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -614,6 +619,36 @@ export default function ChatPage() {
     }
   };
 
+  const triggerAutoML = async () => {
+    if (!lastCsvFile || automlLoading) return;
+    setAutomlLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", lastCsvFile);
+      const res = await fetch("/api/automl", { method: "POST", body: formData, headers: {} });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || "AutoML upload failed");
+      }
+      const data = await res.json();
+      setAutomlSessionId(data.session_id);
+      setAutomlUploadResult(data);
+    } catch (error) {
+      console.error("AutoML error:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: uuidv4(),
+          role: "assistant",
+          content: "Failed to initialize AutoML. Make sure the PyCaret backend is running (python pycaret-backend/main.py).",
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    } finally {
+      setAutomlLoading(false);
+    }
+  };
+
   const triggerGraph = async () => {
     if (graphLoading) return;
     setGraphLoading(true);
@@ -996,7 +1031,7 @@ export default function ChatPage() {
                     <path d="M8 13h2v2H8zM12 13h2v2h-2zM8 17h2v2H8zM12 17h2v2h-2z" />
                   </svg>
                   <p className="flex-1 text-xs text-[#2C2824]/70" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                    CSV file detected! Generate an interactive EDA dashboard?
+                    CSV file detected!
                   </p>
                   <button
                     onClick={triggerEDA}
@@ -1004,7 +1039,15 @@ export default function ChatPage() {
                     className="px-3 py-1.5 text-xs font-medium bg-[#C48C56] text-white rounded-lg hover:bg-[#B07A48] transition-colors disabled:opacity-50"
                     style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                   >
-                    {edaLoading ? "Analyzing..." : "Generate Dashboard"}
+                    {edaLoading ? "Analyzing..." : "EDA Dashboard"}
+                  </button>
+                  <button
+                    onClick={triggerAutoML}
+                    disabled={automlLoading}
+                    className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-[#C48C56] to-[#8B6B3D] text-white rounded-lg hover:shadow-md transition-all disabled:opacity-50"
+                    style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  >
+                    {automlLoading ? "Loading..." : "AutoML Pipeline"}
                   </button>
                 </div>
               </div>
@@ -1050,6 +1093,15 @@ export default function ChatPage() {
         <div className="fixed inset-0 z-50 bg-[#F2EFEA]/95 backdrop-blur-sm">
           <GraphVisualization data={graphData} onClose={() => setGraphData(null)} />
         </div>
+      )}
+
+      {/* AutoML Dashboard Overlay */}
+      {automlUploadResult && (
+        <AutoMLDashboard
+          sessionId={automlSessionId}
+          uploadResult={automlUploadResult}
+          onClose={() => { setAutomlUploadResult(null); setAutomlSessionId(""); }}
+        />
       )}
     </div>
   );
