@@ -1,8 +1,6 @@
 import Groq from "groq-sdk";
 
-const groqClient = new Groq({
-  apiKey: process.env.GROQ_API_KEY!,
-});
+let groqClient: Groq | null = null;
 
 export const MODELS = {
   text: "llama-3.3-70b-versatile",
@@ -10,6 +8,11 @@ export const MODELS = {
 } as const;
 
 export function getGroqClient(): Groq {
+  if (!groqClient) {
+    groqClient = new Groq({
+      apiKey: process.env.GROQ_API_KEY || "",
+    });
+  }
   return groqClient;
 }
 
@@ -36,7 +39,8 @@ export async function chatCompletion(
   messages: { role: string; content: string }[],
   stream: boolean = true
 ) {
-  const response = await groqClient.chat.completions.create({
+  const client = getGroqClient();
+  const response = await client.chat.completions.create({
     model: MODELS.text,
     messages: messages as Groq.Chat.Completions.ChatCompletionMessageParam[],
     stream,
@@ -47,4 +51,4 @@ export async function chatCompletion(
   return response;
 }
 
-export { groqClient };
+export { getGroqClient as groqClient };
