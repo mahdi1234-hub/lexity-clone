@@ -42,5 +42,7 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/",
   },
+  // After sign-in, check if the user came from the collaborate page
+  // and redirect them back there
   secret: process.env.NEXTAUTH_SECRET,
 };

@@ -22,6 +22,7 @@ import CollaborationCursors from "./CollaborationCursors";
 import CollaborationComments from "./CollaborationComments";
 import AICanvasNode from "./AICanvasNode";
 import WidgetCanvasNode from "./WidgetCanvasNode";
+import DataSelectorModal from "./DataSelectorModal";
 
 interface CollaborativeWhiteboardProps {
   roomId: string;
@@ -58,6 +59,8 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
   const [showComments, setShowComments] = useState(false);
   const [showWidgetPanel, setShowWidgetPanel] = useState(false);
   const [googleConnected, setGoogleConnected] = useState(false);
+  const [selectorModal, setSelectorModal] = useState<{ type: string; title: string } | null>(null);
+  const pendingWidgetType = useRef<string>("");
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -300,8 +303,9 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
                 title: widgetType === "gmail" ? "Gmail Inbox" : widgetType === "calendar" ? "Calendar Events" : widgetType === "tasks" ? "My Tasks" : "Google Meet",
                 connected: false,
                 onConnect: () => {
-                  // Re-authenticate with Google workspace scopes
-                  window.location.href = "/api/auth/signin/google";
+                  // Re-authenticate with workspace scopes, redirect back to collaborate
+                  const currentUrl = window.location.href;
+                  window.location.href = `/api/auth/signin/google?callbackUrl=${encodeURIComponent(currentUrl)}`;
                 },
               },
             };
@@ -333,7 +337,7 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
               widgetType,
               title: widgetType.charAt(0).toUpperCase() + widgetType.slice(1),
               connected: false,
-              onConnect: () => { window.location.href = "/api/auth/signin/google"; },
+              onConnect: () => { window.location.href = `/api/auth/signin/google?callbackUrl=${encodeURIComponent(window.location.href)}`; },
             },
           };
           setNodes((nds) => [...nds, widgetNode]);
@@ -561,6 +565,19 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
         </p>
       </div>
 
+      {/* Data Selector Modal */}
+      {selectorModal && (
+        <DataSelectorModal
+          type={selectorModal.type}
+          title={selectorModal.title}
+          onCancel={() => setSelectorModal(null)}
+          onConfirm={() => {
+            setSelectorModal(null);
+            addManualWidget(pendingWidgetType.current);
+          }}
+        />
+      )}
+
       {/* Widget Panel */}
       {showWidgetPanel && (
         <div className="absolute left-0 top-[52px] bottom-0 w-64 bg-[#2C2824]/95 backdrop-blur-xl border-r border-[#3D3530] overflow-y-auto z-50" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
@@ -581,7 +598,7 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
               ].map((item) => (
                 <button
                   key={item.type}
-                  onClick={() => addManualWidget(item.type)}
+                  onClick={() => { pendingWidgetType.current = item.type; setSelectorModal({ type: item.type, title: item.label }); }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors text-left"
                 >
                   <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${item.color}15` }}>
@@ -601,7 +618,7 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
             <p className="text-[10px] text-[#F2EFEA]/40 uppercase tracking-wider mb-2 px-1">Visualization</p>
             <div className="space-y-1">
               <button
-                onClick={() => addManualWidget("chart")}
+                onClick={() => { pendingWidgetType.current = "chart"; setSelectorModal({ type: "chart", title: "Add Chart" }); }}
                 className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors text-left"
               >
                 <div className="w-7 h-7 rounded-lg bg-[#C48C56]/10 flex items-center justify-center">
