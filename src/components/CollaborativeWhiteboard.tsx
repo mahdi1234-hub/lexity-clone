@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Tldraw, Editor } from "tldraw";
 import "tldraw/tldraw.css";
 import { useOthers, useMyPresence, useSelf } from "../../liveblocks.config";
@@ -13,11 +13,12 @@ interface CollaborativeWhiteboardProps {
 }
 
 export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhiteboardProps) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [editor, setEditor] = useState<Editor | null>(null);
   const others = useOthers();
   const self = useSelf();
   const [, updateMyPresence] = useMyPresence();
-  const [showComments, setShowComments] = useState(true);
+  const [commentsOpen, setCommentsOpen] = useState(true);
   const [showOverlay, setShowOverlay] = useState(true);
 
   // Track pointer for cursor sharing
@@ -38,53 +39,99 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
     updateMyPresence({ cursor: null });
   }, [updateMyPresence]);
 
-  // Sync tldraw changes across users via presence
-  useEffect(() => {
-    if (!editor) return;
-
-    const handleChange = () => {
-      // TLDraw handles its own state; we just need cursor presence
-    };
-
-    editor.on("change" as never, handleChange);
-    return () => {
-      editor.off("change" as never, handleChange);
-    };
-  }, [editor]);
-
   return (
-    <div className="relative w-full h-full flex flex-col">
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+      }}
+    >
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-4 py-2 bg-[#2C2824] border-b border-[#3D3530]">
-        <div className="flex items-center gap-3">
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "8px 16px",
+          backgroundColor: "#2C2824",
+          borderBottom: "1px solid #3D3530",
+          flexShrink: 0,
+          zIndex: 60,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <h2
-            className="text-sm font-medium text-[#F2EFEA]/80"
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            style={{
+              fontSize: 14,
+              fontWeight: 500,
+              color: "rgba(242,239,234,0.8)",
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              margin: 0,
+            }}
           >
             Collaborative Whiteboard
           </h2>
-          <span className="text-xs text-[#C48C56]/60 px-2 py-0.5 rounded-full bg-[#C48C56]/10">
+          <span
+            style={{
+              fontSize: 11,
+              color: "rgba(196,140,86,0.6)",
+              padding: "2px 8px",
+              borderRadius: 999,
+              backgroundColor: "rgba(196,140,86,0.1)",
+            }}
+          >
             {roomId}
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           {/* Active collaborators */}
-          <div className="flex items-center -space-x-2">
+          <div style={{ display: "flex", alignItems: "center" }}>
             {self && (
               <div
-                className="w-7 h-7 rounded-full border-2 border-[#2C2824] flex items-center justify-center text-xs font-medium text-white"
-                style={{ backgroundColor: self.info?.color || "#C48C56" }}
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: "50%",
+                  border: "2px solid #2C2824",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 11,
+                  fontWeight: 500,
+                  color: "white",
+                  backgroundColor: self.info?.color || "#C48C56",
+                  marginRight: -8,
+                  position: "relative",
+                  zIndex: 2,
+                }}
                 title={`${self.info?.name || "You"} (you)`}
               >
                 {(self.info?.name || "Y")[0].toUpperCase()}
               </div>
             )}
-            {others.map((other) => (
+            {others.map((other, i) => (
               <div
                 key={other.connectionId}
-                className="w-7 h-7 rounded-full border-2 border-[#2C2824] flex items-center justify-center text-xs font-medium text-white"
-                style={{ backgroundColor: other.info?.color || "#7986CB" }}
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: "50%",
+                  border: "2px solid #2C2824",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 11,
+                  fontWeight: 500,
+                  color: "white",
+                  backgroundColor: other.info?.color || "#7986CB",
+                  marginRight: i < others.length - 1 ? -8 : 0,
+                  position: "relative",
+                  zIndex: 1,
+                }}
                 title={other.info?.name || "Collaborator"}
               >
                 {(other.info?.name || "?")[0].toUpperCase()}
@@ -92,63 +139,94 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
             ))}
           </div>
 
-          <span className="text-xs text-[#F2EFEA]/40">
+          <span style={{ fontSize: 11, color: "rgba(242,239,234,0.4)" }}>
             {others.length + 1} online
           </span>
 
-          <div className="h-4 w-px bg-[#3D3530]" />
+          <div style={{ height: 16, width: 1, backgroundColor: "#3D3530" }} />
 
           {/* Toggle buttons */}
           <button
-            onClick={() => setShowComments(!showComments)}
-            className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
-              showComments
-                ? "bg-[#C48C56]/20 text-[#C48C56]"
-                : "text-[#F2EFEA]/40 hover:text-[#F2EFEA]/60"
-            }`}
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            onClick={() => setCommentsOpen((prev) => !prev)}
+            style={{
+              padding: "6px 12px",
+              fontSize: 12,
+              borderRadius: 8,
+              border: "none",
+              cursor: "pointer",
+              transition: "all 0.2s",
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              backgroundColor: commentsOpen ? "rgba(196,140,86,0.2)" : "transparent",
+              color: commentsOpen ? "#C48C56" : "rgba(242,239,234,0.4)",
+            }}
           >
-            Comments
+            {commentsOpen ? "Hide Comments" : "Show Comments"}
           </button>
           <button
-            onClick={() => setShowOverlay(!showOverlay)}
-            className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
-              showOverlay
-                ? "bg-[#C48C56]/20 text-[#C48C56]"
-                : "text-[#F2EFEA]/40 hover:text-[#F2EFEA]/60"
-            }`}
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            onClick={() => setShowOverlay((prev) => !prev)}
+            style={{
+              padding: "6px 12px",
+              fontSize: 12,
+              borderRadius: 8,
+              border: "none",
+              cursor: "pointer",
+              transition: "all 0.2s",
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              backgroundColor: showOverlay ? "rgba(196,140,86,0.2)" : "transparent",
+              color: showOverlay ? "#C48C56" : "rgba(242,239,234,0.4)",
+            }}
           >
             Overlay
           </button>
         </div>
       </div>
 
-      {/* Main whiteboard area */}
-      <div
-        className="relative flex-1"
-        onPointerMove={handlePointerMove}
-        onPointerLeave={handlePointerLeave}
-      >
-        <Tldraw
-          onMount={(editorInstance: Editor) => {
-            setEditor(editorInstance);
+      {/* Main content area: whiteboard + comments panel */}
+      <div style={{ display: "flex", flex: 1, position: "relative", overflow: "hidden" }}>
+        {/* Whiteboard container - takes all remaining space */}
+        <div
+          style={{
+            flex: 1,
+            position: "relative",
+            minWidth: 0,
           }}
-        />
+          onPointerMove={handlePointerMove}
+          onPointerLeave={handlePointerLeave}
+        >
+          {/* TLDraw fills this entire container */}
+          <div style={{ position: "absolute", inset: 0 }}>
+            <Tldraw
+              onMount={(editorInstance: Editor) => {
+                setEditor(editorInstance);
+              }}
+            />
+          </div>
 
-        {/* Collaboration cursors overlay */}
-        <CollaborationCursors />
+          {/* Cursor overlay - pointer-events: none so it doesn't block tldraw */}
+          <CollaborationCursors />
 
-        {/* Overlay comments pinned on the whiteboard */}
-        {showOverlay && <OverlayComments />}
-      </div>
-
-      {/* Side panel for thread comments */}
-      {showComments && (
-        <div className="absolute right-0 top-[52px] bottom-0 w-80 bg-[#2C2824]/95 backdrop-blur-xl border-l border-[#3D3530] overflow-hidden z-50">
-          <CollaborationComments />
+          {/* Overlay comment pins */}
+          {showOverlay && <OverlayComments />}
         </div>
-      )}
+
+        {/* Collapsible comments panel */}
+        <div
+          style={{
+            width: commentsOpen ? 320 : 0,
+            transition: "width 0.3s ease",
+            overflow: "hidden",
+            flexShrink: 0,
+            backgroundColor: "rgba(44,40,36,0.95)",
+            borderLeft: commentsOpen ? "1px solid #3D3530" : "none",
+            position: "relative",
+            zIndex: 50,
+          }}
+        >
+          <div style={{ width: 320, height: "100%" }}>
+            <CollaborationComments />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

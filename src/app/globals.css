@@ -146,3 +146,14 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(44, 40, 36, 0.4);
 }
+
+/* TLDraw whiteboard - ensure it fills its container */
+.tl-container {
+  width: 100% !important;
+  height: 100% !important;
+}
+.tl-theme__dark,
+.tl-theme__light {
+  width: 100% !important;
+  height: 100% !important;
+}

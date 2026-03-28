@@ -192,8 +192,8 @@ function CollaborateContent() {
         </div>
       </div>
 
-      {/* Whiteboard */}
-      <div className="flex-1 relative">
+      {/* Whiteboard - must have explicit height for tldraw */}
+      <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
         <RoomProvider
           id={roomId}
           initialPresence={{
