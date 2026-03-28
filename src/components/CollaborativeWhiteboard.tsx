@@ -17,6 +17,7 @@ import {
   BackgroundVariant,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { signIn } from "next-auth/react";
 import { useOthers, useMyPresence, useSelf } from "../../liveblocks.config";
 import CollaborationCursors from "./CollaborationCursors";
 import CollaborationComments from "./CollaborationComments";
@@ -303,9 +304,7 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
                 title: widgetType === "gmail" ? "Gmail Inbox" : widgetType === "calendar" ? "Calendar Events" : widgetType === "tasks" ? "My Tasks" : "Google Meet",
                 connected: false,
                 onConnect: () => {
-                  // Re-authenticate with workspace scopes, redirect back to collaborate
-                  const currentUrl = window.location.href;
-                  window.location.href = `/api/auth/signin/google?callbackUrl=${encodeURIComponent(currentUrl)}`;
+                  signIn("google", { callbackUrl: window.location.href });
                 },
               },
             };
@@ -337,7 +336,7 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
               widgetType,
               title: widgetType.charAt(0).toUpperCase() + widgetType.slice(1),
               connected: false,
-              onConnect: () => { window.location.href = `/api/auth/signin/google?callbackUrl=${encodeURIComponent(window.location.href)}`; },
+              onConnect: () => { signIn("google", { callbackUrl: window.location.href }); },
             },
           };
           setNodes((nds) => [...nds, widgetNode]);
@@ -400,7 +399,7 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
             widgetType: "calendar",
             title: "Google Sheets",
             connected: false,
-            onConnect: () => { window.location.href = `/api/auth/signin/google?callbackUrl=${encodeURIComponent(window.location.href)}`; },
+            onConnect: () => { signIn("google", { callbackUrl: window.location.href }); },
           },
         };
         setNodes((nds) => [...nds, widgetNode]);

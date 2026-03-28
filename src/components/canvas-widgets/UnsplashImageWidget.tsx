@@ -19,11 +19,19 @@ interface UnsplashImageWidgetProps {
   expanded?: boolean;
 }
 
+// Default curated images shown before any search
+const DEFAULT_IMAGES: UnsplashImage[] = [
+  { id: "d1", url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600", thumb: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=200", small: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400", alt: "Mountain landscape", photographer: "Bailey Zindel", photographerUrl: "https://unsplash.com/@baileyzindel", link: "https://unsplash.com/photos/nrqv_x7sMk" },
+  { id: "d2", url: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600", thumb: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=200", small: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400", alt: "Starry night mountains", photographer: "Benjamin Voros", photographerUrl: "https://unsplash.com/@vorosbenisop", link: "https://unsplash.com/photos/phIFdC6lA4E" },
+  { id: "d3", url: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600", thumb: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=200", small: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400", alt: "Foggy forest", photographer: "v2osk", photographerUrl: "https://unsplash.com/@v2osk", link: "https://unsplash.com/photos/1Z2niiBPg5A" },
+  { id: "d4", url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600", thumb: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=200", small: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400", alt: "Sunlit forest path", photographer: "Lukasz Szmigiel", photographerUrl: "https://unsplash.com/@szmigieldesign", link: "https://unsplash.com/photos/jFCViYFYcus" },
+];
+
 function UnsplashImageWidget({ initialQuery, onImageSelect, expanded }: UnsplashImageWidgetProps) {
   const [query, setQuery] = useState(initialQuery || "");
-  const [images, setImages] = useState<UnsplashImage[]>([]);
+  const [images, setImages] = useState<UnsplashImage[]>(DEFAULT_IMAGES);
   const [loading, setLoading] = useState(false);
-  const [searched, setSearched] = useState(false);
+  const [searched, setSearched] = useState(true); // show defaults immediately
   const [selectedImage, setSelectedImage] = useState<UnsplashImage | null>(null);
   const width = expanded ? 600 : 380;
 
