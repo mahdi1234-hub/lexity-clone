@@ -56,6 +56,8 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [showComments, setShowComments] = useState(false);
+  const [showWidgetPanel, setShowWidgetPanel] = useState(false);
+  const [googleConnected, setGoogleConnected] = useState(false);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -266,6 +268,122 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
     [nodes, edges, self, isGenerating, roomId, setNodes, setEdges]
   );
 
+  // Manual widget creation (no AI needed)
+  const addManualWidget = useCallback(
+    async (widgetType: string) => {
+      const center = reactFlowInstance.current?.getViewport();
+      const position = center
+        ? { x: -center.x / (center.zoom || 1) + 300, y: -center.y / (center.zoom || 1) + 200 }
+        : { x: Math.random() * 500, y: Math.random() * 400 };
+
+      const widgetNodeId = `manual-widget-${Date.now()}`;
+
+      if (["gmail", "calendar", "tasks", "meet"].includes(widgetType)) {
+        // Fetch Google Workspace data
+        try {
+          const res = await fetch("/api/google-workspace", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: widgetType }),
+          });
+          const wsData = await res.json();
+
+          if (!wsData.connected) {
+            setGoogleConnected(false);
+            // Show connect prompt widget
+            const widgetNode: Node = {
+              id: widgetNodeId,
+              type: "widgetNode",
+              position,
+              data: {
+                widgetType,
+                title: widgetType === "gmail" ? "Gmail Inbox" : widgetType === "calendar" ? "Calendar Events" : widgetType === "tasks" ? "My Tasks" : "Google Meet",
+                connected: false,
+                onConnect: () => {
+                  // Re-authenticate with Google workspace scopes
+                  window.location.href = "/api/auth/signin/google";
+                },
+              },
+            };
+            setNodes((nds) => [...nds, widgetNode]);
+          } else {
+            setGoogleConnected(true);
+            const widgetNode: Node = {
+              id: widgetNodeId,
+              type: "widgetNode",
+              position,
+              data: {
+                widgetType,
+                title: widgetType === "gmail" ? "Gmail Inbox" : widgetType === "calendar" ? "Upcoming Events" : widgetType === "tasks" ? "My Tasks" : "Upcoming Meetings",
+                connected: true,
+                emails: wsData.emails,
+                events: wsData.events,
+                tasks: wsData.tasks,
+                meetings: wsData.meetings,
+              },
+            };
+            setNodes((nds) => [...nds, widgetNode]);
+          }
+        } catch {
+          const widgetNode: Node = {
+            id: widgetNodeId,
+            type: "widgetNode",
+            position,
+            data: {
+              widgetType,
+              title: widgetType.charAt(0).toUpperCase() + widgetType.slice(1),
+              connected: false,
+              onConnect: () => { window.location.href = "/api/auth/signin/google"; },
+            },
+          };
+          setNodes((nds) => [...nds, widgetNode]);
+        }
+      } else if (widgetType === "chart") {
+        // Add a sample chart widget
+        const widgetNode: Node = {
+          id: widgetNodeId,
+          type: "widgetNode",
+          position,
+          data: {
+            widgetType: "chart",
+            chartType: "bar",
+            title: "Sample Chart",
+            description: "Drag to reposition. AI can generate custom data charts.",
+            chartData: {
+              items: [
+                { label: "Mon", value: 40 },
+                { label: "Tue", value: 65 },
+                { label: "Wed", value: 55 },
+                { label: "Thu", value: 80 },
+                { label: "Fri", value: 45 },
+              ],
+              keys: ["value"],
+              indexBy: "label",
+            },
+          },
+        };
+        setNodes((nds) => [...nds, widgetNode]);
+      } else if (widgetType === "note") {
+        // Add a text note node
+        const noteNode: Node = {
+          id: widgetNodeId,
+          type: "aiNode",
+          position,
+          data: {
+            role: "system",
+            content: "Double-click to edit this note...",
+            timestamp: new Date().toISOString(),
+            isWelcome: false,
+          },
+        };
+        setNodes((nds) => [...nds, noteNode]);
+      }
+
+      setShowWidgetPanel(false);
+    },
+    [setNodes, setGoogleConnected, setShowWidgetPanel]
+  );
+
   const onPaneClick = useCallback(() => {
     if (inputRef.current) inputRef.current.focus();
   }, []);
@@ -341,6 +459,13 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
           </div>
           <span className="text-xs text-[#F2EFEA]/40">{others.length + 1} online</span>
           <div className="h-4 w-px bg-[#3D3530]" />
+          <button
+            onClick={() => setShowWidgetPanel(!showWidgetPanel)}
+            className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${showWidgetPanel ? "bg-[#7986CB]/20 text-[#7986CB]" : "text-[#F2EFEA]/40 hover:text-[#F2EFEA]/60"}`}
+            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          >
+            + Widgets
+          </button>
           <button
             onClick={() => setShowComments(!showComments)}
             className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${showComments ? "bg-[#C48C56]/20 text-[#C48C56]" : "text-[#F2EFEA]/40 hover:text-[#F2EFEA]/60"}`}
@@ -435,6 +560,86 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
           Double-click canvas to place a node. Click an AI response to branch from it.
         </p>
       </div>
+
+      {/* Widget Panel */}
+      {showWidgetPanel && (
+        <div className="absolute left-0 top-[52px] bottom-0 w-64 bg-[#2C2824]/95 backdrop-blur-xl border-r border-[#3D3530] overflow-y-auto z-50" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <div className="px-4 py-3 border-b border-[#3D3530]">
+            <h3 className="text-sm font-medium text-[#F2EFEA]/90">Add Widgets</h3>
+            <p className="text-[10px] text-[#F2EFEA]/30 mt-0.5">Click to add to canvas</p>
+          </div>
+
+          {/* Google Workspace */}
+          <div className="px-3 py-3">
+            <p className="text-[10px] text-[#F2EFEA]/40 uppercase tracking-wider mb-2 px-1">Google Workspace</p>
+            <div className="space-y-1">
+              {[
+                { type: "gmail", label: "Gmail Inbox", color: "#EA4335", icon: "M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" },
+                { type: "calendar", label: "Calendar", color: "#4285F4", icon: "M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z" },
+                { type: "tasks", label: "Tasks", color: "#4285F4", icon: "M22 5.18L10.59 16.6l-4.24-4.24 1.41-1.41 2.83 2.83 10-10L22 5.18z" },
+                { type: "meet", label: "Google Meet", color: "#00832D", icon: "M12 3c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" },
+              ].map((item) => (
+                <button
+                  key={item.type}
+                  onClick={() => addManualWidget(item.type)}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors text-left"
+                >
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${item.color}15` }}>
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill={item.color}><path d={item.icon} /></svg>
+                  </div>
+                  <div>
+                    <span className="text-xs text-[#F2EFEA]/70">{item.label}</span>
+                    {googleConnected && <span className="text-[8px] text-[#6B8E6B] ml-1.5">Connected</span>}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Data Visualization */}
+          <div className="px-3 py-3 border-t border-[#3D3530]/50">
+            <p className="text-[10px] text-[#F2EFEA]/40 uppercase tracking-wider mb-2 px-1">Visualization</p>
+            <div className="space-y-1">
+              <button
+                onClick={() => addManualWidget("chart")}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors text-left"
+              >
+                <div className="w-7 h-7 rounded-lg bg-[#C48C56]/10 flex items-center justify-center">
+                  <svg className="w-3.5 h-3.5 text-[#C48C56]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 20V10M12 20V4M6 20v-6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <span className="text-xs text-[#F2EFEA]/70">Chart</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Notes & Content */}
+          <div className="px-3 py-3 border-t border-[#3D3530]/50">
+            <p className="text-[10px] text-[#F2EFEA]/40 uppercase tracking-wider mb-2 px-1">Content</p>
+            <div className="space-y-1">
+              <button
+                onClick={() => addManualWidget("note")}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors text-left"
+              >
+                <div className="w-7 h-7 rounded-lg bg-[#FFD54F]/10 flex items-center justify-center">
+                  <svg className="w-3.5 h-3.5 text-[#FFD54F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
+                  </svg>
+                </div>
+                <span className="text-xs text-[#F2EFEA]/70">Note</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="px-4 py-3 border-t border-[#3D3530]/50">
+            <p className="text-[10px] text-[#F2EFEA]/20 leading-relaxed">
+              Tip: You can also ask the AI to generate charts, search results, and widgets automatically.
+            </p>
+          </div>
+        </div>
+      )}
 
       {showComments && (
         <div className="absolute right-0 top-[52px] bottom-0 w-80 bg-[#2C2824]/95 backdrop-blur-xl border-l border-[#3D3530] overflow-hidden z-50">
