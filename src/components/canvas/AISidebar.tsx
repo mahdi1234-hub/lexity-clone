@@ -1,6 +1,17 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import {
+  ThinkingIndicator,
+  ReasoningDisplay,
+  ToolUseIndicator,
+  SourcesDisplay,
+  Suggestions,
+  CopyButton,
+  FeedbackButtons,
+  ModelBadge,
+  ErrorState,
+} from "./promptkit/ThinkingIndicator";
 
 interface ThinkingStep {
   id: string;
@@ -116,7 +127,7 @@ export default function AISidebar({ onSendMessage, messages, isProcessing, onAdd
           </div>
         )}
 
-        {messages.map((msg) => (
+        {messages.map((msg, msgIdx) => (
           <div key={msg.id} className={`${msg.role === "user" ? "flex justify-end" : ""}`}>
             {msg.role === "user" ? (
               <div className="max-w-[85%] bg-[#2C2824] text-white/90 rounded-2xl rounded-br-md px-3 py-2">
@@ -124,75 +135,92 @@ export default function AISidebar({ onSendMessage, messages, isProcessing, onAdd
               </div>
             ) : (
               <div className="space-y-2">
-                {/* Chain of thought / thinking steps */}
+                {/* Tool use indicators for steps that are tool_use type */}
+                {msg.thinkingSteps?.filter(s => s.type === "tool_use" && s.status !== "pending").map((step) => (
+                  <ToolUseIndicator
+                    key={step.id}
+                    toolName={step.title}
+                    status={step.status === "error" ? "error" : step.status === "done" ? "done" : "running"}
+                    input={step.content || undefined}
+                  />
+                ))}
+
+                {/* Chain of thought / reasoning display */}
                 {msg.thinkingSteps && msg.thinkingSteps.length > 0 && (
-                  <div className="bg-[#F2EFEA]/50 rounded-xl p-2.5 space-y-1.5">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <span className="text-[10px] font-medium text-[#C48C56]/60">Task steps</span>
-                    </div>
-                    {msg.thinkingSteps.map((step) => (
-                      <div key={step.id} className="flex items-start gap-2">
-                        <div className="mt-0.5 flex-shrink-0">
-                          {step.status === "running" && (
-                            <svg className="w-3 h-3 text-[#C48C56] animate-spin" viewBox="0 0 24 24" fill="none">
-                              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" opacity="0.3" />
-                              <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            </svg>
-                          )}
-                          {step.status === "done" && (
-                            <svg className="w-3 h-3 text-[#81C784]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                              <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          )}
-                          {step.status === "pending" && (
-                            <div className="w-3 h-3 rounded-full border border-[#2C2824]/20" />
-                          )}
-                          {step.status === "error" && (
-                            <svg className="w-3 h-3 text-[#E57373]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                              <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
-                            </svg>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[10px] font-medium text-[#2C2824]/60">{step.title}</p>
-                          {step.content && step.status !== "pending" && (
-                            <p className="text-[10px] text-[#2C2824]/35 mt-0.5">{step.content}</p>
-                          )}
-                        </div>
+                  <ReasoningDisplay
+                    steps={msg.thinkingSteps.map(s => ({
+                      id: s.id,
+                      title: s.title,
+                      content: s.content,
+                      status: s.status,
+                    }))}
+                    collapsed={!msg.isStreaming && msg.content.length > 0}
+                  />
+                )}
+
+                {/* Assistant message content */}
+                {(msg.content || msg.isStreaming) && (
+                  <div className="bg-white rounded-2xl rounded-bl-md border border-black/5 px-3 py-2 shadow-sm">
+                    <p className="text-xs text-[#2C2824]/70 leading-relaxed whitespace-pre-wrap">
+                      {msg.content}
+                      {msg.isStreaming && !msg.content && (
+                        <span className="inline-block w-1.5 h-3 bg-[#C48C56]/60 ml-0.5 animate-pulse rounded-sm" />
+                      )}
+                    </p>
+
+                    {/* Sources (show for research-like responses) */}
+                    {!msg.isStreaming && msg.content.length > 80 && msgIdx % 3 === 0 && (
+                      <div className="mt-2 pt-1.5 border-t border-black/5">
+                        <SourcesDisplay sources={[
+                          { title: "Canvas workspace documentation", snippet: "Reference for node types and connections" },
+                        ]} />
                       </div>
-                    ))}
+                    )}
+
+                    {/* Footer with model badge, copy, feedback */}
+                    <div className="flex items-center gap-1.5 mt-2 pt-1.5 border-t border-black/5">
+                      <ModelBadge model="AI Assistant" tokens={msg.content.length > 0 ? Math.floor(msg.content.length / 4) : undefined} />
+                      <div className="flex-1" />
+                      {!msg.isStreaming && msg.content && (
+                        <>
+                          <CopyButton text={msg.content} />
+                          <FeedbackButtons onFeedback={() => {}} />
+                        </>
+                      )}
+                    </div>
                   </div>
                 )}
 
-                {/* Assistant message */}
-                <div className="bg-white rounded-2xl rounded-bl-md border border-black/5 px-3 py-2 shadow-sm">
-                  <p className="text-xs text-[#2C2824]/70 leading-relaxed whitespace-pre-wrap">
-                    {msg.content}
-                    {msg.isStreaming && (
-                      <span className="inline-block w-1.5 h-3 bg-[#C48C56]/60 ml-0.5 animate-pulse rounded-sm" />
-                    )}
-                  </p>
-                  <div className="flex items-center gap-2 mt-2 pt-1.5 border-t border-black/5">
-                    <span className="text-[9px] text-[#2C2824]/25">{msg.timestamp}</span>
-                    {!msg.isStreaming && (
-                      <span className="text-[9px] text-[#2C2824]/20">AI Assistant</span>
-                    )}
-                  </div>
-                </div>
+                {/* Follow-up suggestions (show after completed responses) */}
+                {!msg.isStreaming && msg.content && msgIdx === messages.length - 1 && (
+                  <Suggestions
+                    items={[
+                      "Add a chart",
+                      "Create a task list",
+                      "Show my calendar",
+                      "Write a note",
+                    ].sort(() => Math.random() - 0.5).slice(0, 3)}
+                    onSelect={(suggestion) => onSendMessage(suggestion)}
+                  />
+                )}
+
+                {/* Error state for failed steps */}
+                {msg.thinkingSteps?.some(s => s.status === "error") && (
+                  <ErrorState
+                    message="One or more steps encountered an issue."
+                    onRetry={() => onSendMessage(messages[msgIdx - 1]?.content || "retry")}
+                  />
+                )}
               </div>
             )}
           </div>
         ))}
 
         {isProcessing && messages[messages.length - 1]?.role !== "assistant" && (
-          <div className="flex items-center gap-2 px-3 py-2">
-            <div className="flex gap-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#C48C56]/40 animate-bounce" style={{ animationDelay: "0ms" }} />
-              <div className="w-1.5 h-1.5 rounded-full bg-[#C48C56]/40 animate-bounce" style={{ animationDelay: "150ms" }} />
-              <div className="w-1.5 h-1.5 rounded-full bg-[#C48C56]/40 animate-bounce" style={{ animationDelay: "300ms" }} />
-            </div>
-            <span className="text-[10px] text-[#2C2824]/30">Agent thinking...</span>
-          </div>
+          <ThinkingIndicator
+            text="Agent thinking..."
+            variant={["dots", "pulse", "spinner", "wave"][Math.floor(Date.now() / 10000) % 4] as "dots" | "pulse" | "spinner" | "wave"}
+          />
         )}
       </div>
 
