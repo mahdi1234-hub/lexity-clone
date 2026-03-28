@@ -924,6 +924,20 @@ export default function ChatPage() {
               )}
             </div>
 
+            {/* Workflows Button */}
+            <div className="px-3 pb-2">
+              <button
+                onClick={() => router.push("/workflows")}
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium bg-[#C48C56]/10 text-[#C48C56] hover:bg-[#C48C56]/20 transition-colors"
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" strokeLinecap="round" />
+                </svg>
+                Geo Workflows
+              </button>
+            </div>
+
             <div className="p-4 border-t border-black/5">
               <div className="flex items-center gap-3">
                 {session.user?.image && (
