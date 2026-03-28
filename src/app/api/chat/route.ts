@@ -6,6 +6,7 @@ import { upsertMemory, queryMemory, getConversationMessages, getRagIndex } from 
 import { generateEmbedding, chunkText } from "@/lib/embeddings";
 import { detectFileType, extractTextFromFile } from "@/lib/file-parser";
 import { v4 as uuidv4 } from "uuid";
+import aj from "@/lib/arcjet";
 
 export const maxDuration = 60;
 
@@ -79,6 +80,25 @@ export async function POST(req: NextRequest) {
 
   const userId = (session.user as { id?: string }).id!;
   const namespace = `user_${userId}`;
+
+  // Arcjet rate limiting: 5 messages per day per user
+  try {
+    const decision = await aj.protect(req, { userId });
+    if (decision.isDenied()) {
+      return NextResponse.json(
+        {
+          error: "RATE_LIMITED",
+          message: "You have reached your daily limit of 5 messages. Please try again tomorrow.",
+          remaining: 0,
+          limit: 5,
+        },
+        { status: 429 }
+      );
+    }
+  } catch (rateLimitError) {
+    console.error("Rate limit check error (non-fatal):", rateLimitError);
+    // If rate limiting fails, allow the request to proceed
+  }
 
   try {
     const formData = await req.formData();

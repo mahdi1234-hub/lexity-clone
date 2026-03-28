@@ -1,8 +1,14 @@
 import { Pinecone } from "@pinecone-database/pinecone";
 
-const pc = new Pinecone({
-  apiKey: process.env.PINECONE_API_KEY!,
-});
+let pc: Pinecone | null = null;
+function getPinecone(): Pinecone {
+  if (!pc) {
+    pc = new Pinecone({
+      apiKey: process.env.PINECONE_API_KEY || "",
+    });
+  }
+  return pc;
+}
 
 const MEMORY_INDEX = "multitenant-memory";
 const RAG_INDEX = "rag-knowledge-base";
@@ -13,10 +19,10 @@ let memoryIndexReady = false;
 async function ensureMemoryIndex() {
   if (memoryIndexReady) return;
   try {
-    const list = await pc.listIndexes();
+    const list = await getPinecone().listIndexes();
     const exists = list.indexes?.some((idx) => idx.name === MEMORY_INDEX);
     if (!exists) {
-      await pc.createIndex({
+      await getPinecone().createIndex({
         name: MEMORY_INDEX,
         dimension: DIMENSION,
         metric: "cosine",
@@ -38,11 +44,11 @@ async function ensureMemoryIndex() {
 
 export async function getIndex() {
   await ensureMemoryIndex();
-  return pc.index(MEMORY_INDEX);
+  return getPinecone().index(MEMORY_INDEX);
 }
 
 export function getRagIndex() {
-  return pc.index(RAG_INDEX);
+  return getPinecone().index(RAG_INDEX);
 }
 
 export async function upsertMemory(

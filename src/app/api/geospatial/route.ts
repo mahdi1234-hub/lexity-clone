@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import Groq from "groq-sdk";
 
-const groqClient = new Groq({ apiKey: process.env.GROQ_API_KEY! });
+let groqClient: Groq | null = null;
+function getGroq() {
+  if (!groqClient) groqClient = new Groq({ apiKey: process.env.GROQ_API_KEY || "" });
+  return groqClient;
+}
 
 const GEOSPATIAL_SYSTEM_PROMPT = `You are a geospatial data generation AI. Given a user query about a location or place, you must generate appropriate visualization data.
 
@@ -148,7 +152,7 @@ ${conversationContext ? `Conversation context: ${conversationContext}` : ""}
 
 Generate the appropriate geospatial/analytics visualization data for this query. Respond with valid JSON only.`;
 
-    const completion = await groqClient.chat.completions.create({
+    const completion = await getGroq().chat.completions.create({
       model: "llama-3.3-70b-versatile",
       messages: [
         { role: "system", content: GEOSPATIAL_SYSTEM_PROMPT },
