@@ -223,134 +223,362 @@ export default function CanvasWorkspace({ userName }: CanvasWorkspaceProps) {
     [setNodes, getNewNodePosition]
   );
 
-  // Simulate AI processing for canvas mode
+  // Classify user intent and generate dynamic, unique responses
+  const classifyIntent = useCallback((message: string) => {
+    const lower = message.toLowerCase();
+    const words = lower.split(/\s+/);
+
+    // Chart/visualization requests
+    if (/\b(chart|graph|plot|visualiz|histogram|distribution|trend|analytics|metric|kpi|dashboard)\b/.test(lower)) {
+      const chartType = /\b(pie|donut|circle)\b/.test(lower) ? "pie"
+        : /\b(line|trend|time.?series|growth)\b/.test(lower) ? "line"
+        : /\b(radar|spider|comparison)\b/.test(lower) ? "radar"
+        : "bar";
+      return { type: "chart", chartType, confidence: "high" };
+    }
+    // Email
+    if (/\b(email|inbox|mail|message|unread|gmail)\b/.test(lower)) return { type: "email", confidence: "high" };
+    // Calendar
+    if (/\b(calendar|schedule|event|meeting|appointment|agenda)\b/.test(lower)) return { type: "calendar", confidence: "high" };
+    // Tasks
+    if (/\b(task|todo|checklist|to.?do|action.?item|backlog)\b/.test(lower)) return { type: "tasks", confidence: "high" };
+    // Meet/video
+    if (/\b(meet|video|call|zoom|conference|huddle)\b/.test(lower)) return { type: "meet", confidence: "high" };
+    // Note/write
+    if (/\b(note|write|jot|memo|sticky|remind|remember)\b/.test(lower)) return { type: "note", confidence: "high" };
+    // Web/link/research
+    if (/\b(link|url|website|browse|search|research|find|look.?up)\b/.test(lower)) return { type: "weblink", confidence: "medium" };
+    // Image
+    if (/\b(image|picture|photo|screenshot|visual|illustration|diagram)\b/.test(lower)) return { type: "image", confidence: "medium" };
+    // Multiple items / complex request
+    if (words.length > 15) return { type: "complex", confidence: "medium" };
+    // Default: AI response
+    return { type: "response", confidence: "low" };
+  }, []);
+
+  // Generate unique thinking steps per intent
+  type StepType = "thinking" | "tool_use" | "result" | "error";
+  const generateThinkingSteps = useCallback((intent: { type: string; chartType?: string; confidence: string }, message: string) => {
+    const stepSets: Record<string, { id: string; type: StepType; title: string; content: string; status: "pending" | "running"; timestamp: string }[]> = {
+      chart: [
+        { id: "s1", type: "thinking", title: "Interpreting data visualization request", content: `Detected chart request: "${message.slice(0, 50)}..."`, status: "running", timestamp: "" },
+        { id: "s2", type: "tool_use", title: `Generating ${intent.chartType || "bar"} chart data`, content: "", status: "pending", timestamp: "" },
+        { id: "s3", type: "tool_use", title: "Rendering Nivo visualization", content: "", status: "pending", timestamp: "" },
+        { id: "s4", type: "result", title: "Placing chart on canvas", content: "", status: "pending", timestamp: "" },
+      ],
+      email: [
+        { id: "s1", type: "thinking", title: "Processing email widget request", content: "Checking for email-related keywords...", status: "running", timestamp: "" },
+        { id: "s2", type: "tool_use", title: "Fetching email data structure", content: "", status: "pending", timestamp: "" },
+        { id: "s3", type: "result", title: "Rendering email widget card", content: "", status: "pending", timestamp: "" },
+      ],
+      calendar: [
+        { id: "s1", type: "thinking", title: "Understanding schedule request", content: "Parsing calendar-related intent...", status: "running", timestamp: "" },
+        { id: "s2", type: "tool_use", title: "Building calendar view", content: "", status: "pending", timestamp: "" },
+        { id: "s3", type: "result", title: "Adding calendar to canvas", content: "", status: "pending", timestamp: "" },
+      ],
+      tasks: [
+        { id: "s1", type: "thinking", title: "Parsing task/todo request", content: "Extracting actionable items...", status: "running", timestamp: "" },
+        { id: "s2", type: "tool_use", title: "Organizing task list", content: "", status: "pending", timestamp: "" },
+        { id: "s3", type: "result", title: "Creating task widget", content: "", status: "pending", timestamp: "" },
+      ],
+      meet: [
+        { id: "s1", type: "thinking", title: "Recognizing meeting request", content: "Identifying video call context...", status: "running", timestamp: "" },
+        { id: "s2", type: "tool_use", title: "Preparing meeting widget", content: "", status: "pending", timestamp: "" },
+        { id: "s3", type: "result", title: "Adding meeting card to canvas", content: "", status: "pending", timestamp: "" },
+      ],
+      note: [
+        { id: "s1", type: "thinking", title: "Processing note request", content: "Formatting text content...", status: "running", timestamp: "" },
+        { id: "s2", type: "result", title: "Creating editable note card", content: "", status: "pending", timestamp: "" },
+      ],
+      weblink: [
+        { id: "s1", type: "thinking", title: "Analyzing web/research request", content: "Identifying URL or search intent...", status: "running", timestamp: "" },
+        { id: "s2", type: "tool_use", title: "Extracting link metadata", content: "", status: "pending", timestamp: "" },
+        { id: "s3", type: "result", title: "Creating link preview card", content: "", status: "pending", timestamp: "" },
+      ],
+      image: [
+        { id: "s1", type: "thinking", title: "Processing image request", content: "Identifying visual content needs...", status: "running", timestamp: "" },
+        { id: "s2", type: "tool_use", title: "Preparing image placeholder", content: "", status: "pending", timestamp: "" },
+        { id: "s3", type: "result", title: "Adding image card to canvas", content: "", status: "pending", timestamp: "" },
+      ],
+      complex: [
+        { id: "s1", type: "thinking", title: "Analyzing complex request", content: "Breaking down multi-part query...", status: "running", timestamp: "" },
+        { id: "s2", type: "thinking", title: "Identifying key components", content: "", status: "pending", timestamp: "" },
+        { id: "s3", type: "tool_use", title: "Generating structured response", content: "", status: "pending", timestamp: "" },
+        { id: "s4", type: "result", title: "Composing canvas card", content: "", status: "pending", timestamp: "" },
+      ],
+      response: [
+        { id: "s1", type: "thinking", title: "Understanding your question", content: `Processing: "${message.slice(0, 60)}..."`, status: "running", timestamp: "" },
+        { id: "s2", type: "tool_use", title: "Formulating response", content: "", status: "pending", timestamp: "" },
+        { id: "s3", type: "result", title: "Adding response to canvas", content: "", status: "pending", timestamp: "" },
+      ],
+    };
+    return stepSets[intent.type] || stepSets.response;
+  }, []);
+
+  // Generate unique chart data based on the actual prompt
+  const generateChartData = useCallback((message: string, chartType: string) => {
+    const hash = message.split("").reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0);
+    const abs = Math.abs(hash);
+    const labels = [
+      ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+      ["Q1", "Q2", "Q3", "Q4"],
+      ["Mon", "Tue", "Wed", "Thu", "Fri"],
+      ["Design", "Dev", "Marketing", "Sales", "Support"],
+      ["North", "South", "East", "West"],
+      ["Alpha", "Beta", "Gamma", "Delta", "Epsilon"],
+    ];
+    const labelSet = labels[abs % labels.length];
+    const genVal = (i: number) => 15 + ((abs * (i + 1) * 7) % 80);
+
+    switch (chartType) {
+      case "pie":
+        return {
+          chartData: {
+            items: labelSet.slice(0, 4).map((l, i) => ({ id: l.toLowerCase(), label: l, value: genVal(i) })),
+          },
+        };
+      case "line":
+        return {
+          chartData: {
+            series: [{
+              id: "series",
+              data: labelSet.map((l, i) => ({ x: l, y: genVal(i) })),
+            }],
+          },
+        };
+      case "radar":
+        return {
+          chartData: {
+            items: labelSet.map((l, i) => ({ label: l, value: genVal(i), benchmark: genVal(i + 3) })),
+            keys: ["value", "benchmark"],
+            indexBy: "label",
+          },
+        };
+      default: // bar
+        return {
+          chartData: {
+            items: labelSet.map((l, i) => ({ label: l, value: genVal(i) })),
+            keys: ["value"],
+            indexBy: "label",
+          },
+        };
+    }
+  }, []);
+
+  // Generate unique completion messages
+  const getCompletionMessage = useCallback((intent: { type: string }, message: string) => {
+    const messages: Record<string, string[]> = {
+      chart: [
+        "Chart visualization created and placed on your canvas. You can drag it to reposition or connect it to related nodes.",
+        "Data visualization ready! The chart is now on your canvas. Try connecting it to other cards for context.",
+        "Your chart has been generated with dynamic data. Drag handles to create connections between nodes.",
+      ],
+      email: [
+        "Email widget added to your workspace. It shows your latest messages at a glance.",
+        "Your inbox widget is now on the canvas. Connect it to related task or calendar nodes for a unified view.",
+      ],
+      calendar: [
+        "Calendar widget placed on canvas. Your upcoming events are displayed in a clean timeline format.",
+        "Schedule overview added! Connect it to meeting or task nodes to build your daily workflow view.",
+      ],
+      tasks: [
+        "Task list created on your canvas. Double-click items to update their status.",
+        "Your to-do widget is ready. Connect it to related notes or calendar events for full context.",
+      ],
+      meet: [
+        "Meeting widget added. It shows your upcoming video calls and their timing.",
+        "Your meetings overview is on the canvas. Link it to preparation notes or agendas.",
+      ],
+      note: [
+        "Note card created! Double-click to edit the content. Drag it near related items to keep things organized.",
+        "Your note is on the canvas. You can edit it anytime by double-clicking the text area.",
+      ],
+      weblink: [
+        "Link preview card added to your canvas. It shows the site metadata at a glance.",
+        "Web reference created. Connect it to related research notes or analysis nodes.",
+      ],
+      image: [
+        "Image card placed on canvas. You can connect it to descriptions or analysis nodes.",
+        "Visual content card added. Drag it into position and create connections to related content.",
+      ],
+      complex: [
+        `I've broken down your request and created a detailed response card. You can find it on the canvas.`,
+        `Complex request processed. The structured response is now on your canvas with all the key points.`,
+      ],
+      response: [
+        `I've analyzed "${message.slice(0, 40)}..." and added my response to the canvas. Feel free to connect it with other nodes.`,
+        `Response generated and placed on your canvas. Each card can be connected to build a knowledge map.`,
+        `Here's my take on that. The response card is on your canvas -- drag it where it fits best in your workflow.`,
+      ],
+    };
+    const options = messages[intent.type] || messages.response;
+    const idx = Math.abs(message.split("").reduce((a, c) => a + c.charCodeAt(0), 0)) % options.length;
+    return options[idx];
+  }, []);
+
+  // Unique note colors
+  const noteColors = ["#FFF9C4", "#E8F5E9", "#E3F2FD", "#FFF3E0", "#F3E5F5", "#EFEBE9", "#E0F7FA"];
+
+  // Process AI messages with dynamic, context-aware responses
   const handleSendMessage = useCallback(
     async (message: string) => {
-      const userMsg: SidebarMessage = {
-        id: `msg-${Date.now()}`,
-        role: "user",
-        content: message,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      };
-
+      const now = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      const userMsg: SidebarMessage = { id: `msg-${Date.now()}`, role: "user", content: message, timestamp: now };
       setSidebarMessages((prev) => [...prev, userMsg]);
       setIsProcessing(true);
 
-      // Simulate AI chain of thought
+      const intent = classifyIntent(message);
+      const steps = generateThinkingSteps(intent, message);
+      const msgId = `msg-${Date.now()}-resp`;
+
       const assistantMsg: SidebarMessage = {
-        id: `msg-${Date.now()}-resp`,
-        role: "assistant",
-        content: "",
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        thinkingSteps: [
-          { id: "s1", type: "thinking", title: "Analyzing your request", content: "Understanding what to add to canvas...", status: "running", timestamp: "" },
-          { id: "s2", type: "tool_use", title: "Preparing canvas content", content: "", status: "pending", timestamp: "" },
-          { id: "s3", type: "result", title: "Adding to canvas", content: "", status: "pending", timestamp: "" },
-        ],
+        id: msgId, role: "assistant", content: "", timestamp: now,
+        thinkingSteps: steps.map((s, i) => ({ ...s, status: i === 0 ? "running" as const : "pending" as const })),
         isStreaming: true,
       };
-
       setSidebarMessages((prev) => [...prev, assistantMsg]);
 
-      // Step 1: Thinking
-      await new Promise((r) => setTimeout(r, 800));
-      setSidebarMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantMsg.id
-            ? {
-                ...m,
-                thinkingSteps: m.thinkingSteps?.map((s) =>
-                  s.id === "s1" ? { ...s, status: "done" as const } : s.id === "s2" ? { ...s, status: "running" as const, content: "Generating content..." } : s
-                ),
-              }
-            : m
-        )
-      );
-
-      // Step 2: Preparing
-      await new Promise((r) => setTimeout(r, 600));
-      setSidebarMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantMsg.id
-            ? {
-                ...m,
-                thinkingSteps: m.thinkingSteps?.map((s) =>
-                  s.id === "s2" ? { ...s, status: "done" as const } : s.id === "s3" ? { ...s, status: "running" as const, content: "Placing on canvas..." } : s
-                ),
-              }
-            : m
-        )
-      );
-
-      // Determine what to add based on message
-      const lowerMsg = message.toLowerCase();
-      if (lowerMsg.includes("chart") || lowerMsg.includes("graph") || lowerMsg.includes("data")) {
-        addNode("chart", {
-          title: "Generated Chart",
-          chartType: lowerMsg.includes("pie") ? "pie" : lowerMsg.includes("line") ? "line" : "bar",
-          chartData: lowerMsg.includes("pie")
-            ? { items: [{ id: "a", label: "Category A", value: 35 }, { id: "b", label: "Category B", value: 25 }, { id: "c", label: "Category C", value: 40 }] }
-            : lowerMsg.includes("line")
-            ? { series: [{ id: "trend", data: [{ x: "Jan", y: 10 }, { x: "Feb", y: 25 }, { x: "Mar", y: 18 }, { x: "Apr", y: 32 }, { x: "May", y: 28 }] }] }
-            : { items: [{ label: "Q1", value: 42 }, { label: "Q2", value: 58 }, { label: "Q3", value: 35 }, { label: "Q4", value: 67 }], keys: ["value"], indexBy: "label" },
-          description: `Chart generated from: "${message}"`,
-        });
-      } else if (lowerMsg.includes("note") || lowerMsg.includes("text") || lowerMsg.includes("write")) {
-        addNode("text", { title: "Note", content: message, color: "#FFF9C4", editable: true });
-      } else if (lowerMsg.includes("email") || lowerMsg.includes("inbox")) {
-        addNode("widget", {
-          widgetType: "email",
-          title: "Email Widget",
-          items: [
-            { id: "1", title: "New message from team", subtitle: "team@example.com", time: "Just now", status: "unread" },
-          ],
-        });
-      } else if (lowerMsg.includes("calendar") || lowerMsg.includes("schedule") || lowerMsg.includes("event")) {
-        addNode("widget", {
-          widgetType: "calendar",
-          title: "Calendar",
-          items: [
-            { id: "1", title: "New event", subtitle: "Today", time: "Now", status: "upcoming" },
-          ],
-        });
-      } else if (lowerMsg.includes("task") || lowerMsg.includes("todo")) {
-        addNode("widget", {
-          widgetType: "tasks",
-          title: "Tasks",
-          items: [
-            { id: "1", title: message, status: "pending" },
-          ],
-        });
-      } else {
-        // Default: add as AI response node
-        addNode("aiResponse", {
-          content: `Based on your request: "${message}"\n\nI've analyzed this and added it to your canvas. You can drag, resize, and connect this card with other elements on the canvas.`,
-          model: "AI Assistant",
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-          isUser: false,
-        });
+      // Animate through each thinking step
+      for (let i = 0; i < steps.length; i++) {
+        const delay = 400 + Math.random() * 500; // varied timing
+        await new Promise((r) => setTimeout(r, delay));
+        setSidebarMessages((prev) =>
+          prev.map((m) => {
+            if (m.id !== msgId) return m;
+            return {
+              ...m,
+              thinkingSteps: m.thinkingSteps?.map((s, j) => {
+                if (j === i) return { ...s, status: "done" as const };
+                if (j === i + 1) return { ...s, status: "running" as const, content: s.content || "Processing..." };
+                return s;
+              }),
+            };
+          })
+        );
       }
 
-      // Step 3: Done
-      await new Promise((r) => setTimeout(r, 400));
+      // Create the appropriate node(s) based on intent
+      const lower = message.toLowerCase();
+      switch (intent.type) {
+        case "chart": {
+          const ct = (intent as { chartType?: string }).chartType || "bar";
+          const { chartData } = generateChartData(message, ct);
+          // Extract a title from the message
+          const titleWords = message.split(/\s+/).slice(0, 5).join(" ");
+          addNode("chart", { title: titleWords || "Chart", chartType: ct, chartData, description: `Generated from: "${message.slice(0, 80)}"` });
+          break;
+        }
+        case "email":
+          addNode("widget", {
+            widgetType: "email",
+            title: lower.includes("work") ? "Work Inbox" : lower.includes("personal") ? "Personal Email" : "Email Inbox",
+            items: [
+              { id: `e${Date.now()}1`, title: "Project update from team lead", subtitle: "updates@team.io", time: "2m ago", status: "unread" },
+              { id: `e${Date.now()}2`, title: "Weekly digest available", subtitle: "digest@company.com", time: "45m ago", status: "unread" },
+              { id: `e${Date.now()}3`, title: "Feedback on latest draft", subtitle: "reviewer@org.com", time: "2h ago", status: "read" },
+            ],
+          });
+          break;
+        case "calendar":
+          addNode("widget", {
+            widgetType: "calendar",
+            title: lower.includes("week") ? "This Week" : lower.includes("tomorrow") ? "Tomorrow" : "Today's Schedule",
+            items: [
+              { id: `c${Date.now()}1`, title: "Morning standup", subtitle: "9:00 AM - 9:15 AM", time: "09:00", status: "done" },
+              { id: `c${Date.now()}2`, title: "Sprint planning", subtitle: "10:30 AM - 11:30 AM", time: "10:30", status: "upcoming" },
+              { id: `c${Date.now()}3`, title: "Lunch with client", subtitle: "12:30 PM - 1:30 PM", time: "12:30", status: "upcoming" },
+            ],
+          });
+          break;
+        case "tasks": {
+          // Try to extract actual tasks from the message
+          const taskItems = message.split(/[,;\n]/).filter(t => t.trim().length > 3).map((t, i) => ({
+            id: `t${Date.now()}${i}`, title: t.trim(), status: "pending" as const,
+          }));
+          addNode("widget", {
+            widgetType: "tasks",
+            title: "Task List",
+            items: taskItems.length > 1 ? taskItems : [
+              { id: `t${Date.now()}1`, title: message.slice(0, 60), status: "pending" },
+              { id: `t${Date.now()}2`, title: "Follow up on above", status: "pending" },
+            ],
+          });
+          break;
+        }
+        case "meet":
+          addNode("widget", {
+            widgetType: "meet",
+            title: "Upcoming Calls",
+            items: [
+              { id: `m${Date.now()}1`, title: lower.includes("team") ? "Team sync" : "Scheduled call", subtitle: "Starting soon", time: "Next", status: "upcoming" },
+              { id: `m${Date.now()}2`, title: "1:1 check-in", subtitle: "Tomorrow at 11:00 AM", time: "11:00", status: "upcoming" },
+            ],
+          });
+          break;
+        case "note": {
+          const colorIdx = Math.abs(message.charCodeAt(0) + message.length) % noteColors.length;
+          addNode("text", { title: message.split(/\s+/).slice(0, 4).join(" "), content: message, color: noteColors[colorIdx], editable: true });
+          break;
+        }
+        case "weblink": {
+          const urlMatch = message.match(/https?:\/\/[^\s]+/);
+          addNode("webLink", {
+            url: urlMatch ? urlMatch[0] : "https://example.com",
+            title: urlMatch ? `Link: ${urlMatch[0].slice(0, 40)}` : message.slice(0, 50),
+            description: `Referenced from your request: "${message.slice(0, 80)}"`,
+          });
+          break;
+        }
+        case "image":
+          addNode("image", {
+            src: `https://placehold.co/600x400/F2EFEA/C48C56?text=${encodeURIComponent(message.slice(0, 20))}`,
+            alt: message.slice(0, 50),
+            caption: `Image placeholder for: "${message.slice(0, 60)}"`,
+            width: 300,
+          });
+          break;
+        case "complex": {
+          // For complex requests, create multiple nodes
+          addNode("aiResponse", {
+            content: `Analysis of your request:\n\n"${message}"\n\nThis is a multi-faceted query. I've broken it down and created this overview card. Use the sidebar to ask follow-up questions about specific aspects.`,
+            model: "AI Assistant",
+            timestamp: now,
+            isUser: false,
+          });
+          // Also add a note with key points
+          const colorIdx2 = Math.abs(message.length * 7) % noteColors.length;
+          addNode("text", {
+            title: "Key Points",
+            content: message.split(/[.!?]/).filter(s => s.trim()).slice(0, 4).map((s, i) => `${i + 1}. ${s.trim()}`).join("\n") || message,
+            color: noteColors[colorIdx2],
+            editable: true,
+          });
+          break;
+        }
+        default:
+          addNode("aiResponse", {
+            content: message.length > 100
+              ? `Here's my analysis:\n\n${message}\n\nI've created this response card on your canvas. You can connect it to related nodes to build context.`
+              : `Regarding "${message}":\n\nI've processed your request and added this card to the canvas. Drag it into position and create connections to build your knowledge map.`,
+            model: "AI Assistant",
+            timestamp: now,
+            isUser: false,
+          });
+      }
+
+      // Final completion
+      await new Promise((r) => setTimeout(r, 300));
+      const completionMsg = getCompletionMessage(intent, message);
       setSidebarMessages((prev) =>
         prev.map((m) =>
-          m.id === assistantMsg.id
-            ? {
-                ...m,
-                content: `Done! I've added the content to your canvas based on your request. You can drag it around and connect it to other nodes.`,
-                isStreaming: false,
-                thinkingSteps: m.thinkingSteps?.map((s) =>
-                  s.id === "s3" ? { ...s, status: "done" as const } : s
-                ),
-              }
+          m.id === msgId
+            ? { ...m, content: completionMsg, isStreaming: false, thinkingSteps: m.thinkingSteps?.map((s) => ({ ...s, status: "done" as const })) }
             : m
         )
       );
-
       setIsProcessing(false);
     },
-    [addNode]
+    [addNode, classifyIntent, generateThinkingSteps, generateChartData, getCompletionMessage, noteColors]
   );
 
   return (
