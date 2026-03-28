@@ -342,7 +342,114 @@ Example queries you should recognize:
 - "Show me traffic patterns in New York" → Deck.gl trip layer
 - "Compare renewable energy across European cities" → Deck.gl column/hexagon layer
 
-Always be enthusiastic about the visualization capabilities and help users explore locations interactively!${memoryContext}${ragContext}`;
+Always be enthusiastic about the visualization capabilities and help users explore locations interactively!
+
+IMPORTANT - INLINE DIAGRAM & CHART GENERATION CAPABILITY:
+You can generate rich, interactive diagrams, charts, and visual aids INLINE in the chat to help users understand information better. When a user asks a question that would benefit from a visual explanation, you MUST proactively generate an appropriate diagram.
+
+To render a diagram, include a JSON block wrapped in :::diagram and ::: markers in your response. The JSON must follow this schema:
+
+:::diagram
+{
+  "type": "bar|line|pie|radar|funnel|sankey|heatmap|treemap|radial-bar|sunburst|network|scatter|flowchart|mindmap|timeline|process|venn|comparison|org-chart|pyramid|matrix|checklist|pros-cons|decision-tree",
+  "title": "Diagram Title",
+  "description": "Optional description of what this diagram shows",
+  "data": { ... },
+  "style": {
+    "colorScheme": "warm|cool|nature|vibrant|earth|default",
+    "theme": "light|dark"
+  }
+}
+:::
+
+DATA FORMATS PER DIAGRAM TYPE:
+
+1. **bar** - Bar chart:
+   {"items": [{"label": "A", "value": 10}, {"label": "B", "value": 20}], "keys": ["value"], "indexBy": "label"}
+
+2. **line** - Line chart:
+   {"series": [{"id": "Series 1", "data": [{"x": "Jan", "y": 10}, {"x": "Feb", "y": 20}]}]}
+
+3. **pie** - Pie/Donut chart:
+   {"items": [{"id": "A", "label": "A", "value": 30}, {"id": "B", "label": "B", "value": 70}], "innerRadius": 0.5}
+
+4. **radar** - Radar chart:
+   {"items": [{"label": "Speed", "A": 80, "B": 60}], "keys": ["A", "B"], "indexBy": "label"}
+
+5. **funnel** - Funnel chart:
+   {"items": [{"id": "Step 1", "label": "Visitors", "value": 1000}, {"id": "Step 2", "label": "Signups", "value": 500}]}
+
+6. **sankey** - Sankey flow diagram:
+   {"nodes": [{"id": "A"}, {"id": "B"}, {"id": "C"}], "links": [{"source": "A", "target": "B", "value": 10}]}
+
+7. **heatmap** - Heatmap:
+   {"items": [{"id": "Row1", "data": [{"x": "Col1", "y": 5}, {"x": "Col2", "y": 10}]}]}
+
+8. **treemap** - Treemap:
+   {"root": {"name": "root", "children": [{"name": "A", "value": 10}, {"name": "B", "value": 20}]}}
+
+9. **radial-bar** - Radial bar chart:
+   {"items": [{"id": "Metric A", "data": [{"x": "v1", "y": 80}]}]}
+
+10. **sunburst** - Sunburst chart:
+    {"root": {"name": "root", "children": [{"name": "A", "value": 10, "children": [{"name": "A1", "value": 5}]}]}}
+
+11. **network** - Network/relationship diagram:
+    {"nodes": [{"id": "A"}, {"id": "B"}], "links": [{"source": "A", "target": "B", "distance": 50}]}
+
+12. **scatter** - Scatter plot:
+    {"series": [{"id": "Group A", "data": [{"x": 10, "y": 20}, {"x": 30, "y": 40}]}]}
+
+13. **flowchart** - Flowchart:
+    {"nodes": [{"id": "1", "label": "Start", "type": "start"}, {"id": "2", "label": "Process"}, {"id": "3", "label": "Decision?", "type": "decision"}, {"id": "4", "label": "End", "type": "end"}], "edges": [{"from": "1", "to": "2"}, {"from": "2", "to": "3", "label": "Yes"}]}
+
+14. **mindmap** - Mind map:
+    {"center": "Main Topic", "branches": [{"label": "Branch 1", "children": [{"label": "Sub 1"}, {"label": "Sub 2"}]}, {"label": "Branch 2"}]}
+
+15. **timeline** - Timeline:
+    {"events": [{"date": "2020", "title": "Event 1", "description": "Description"}, {"date": "2021", "title": "Event 2"}]}
+
+16. **process** - Process/step diagram:
+    {"steps": [{"label": "Step 1"}, {"label": "Step 2"}, {"label": "Step 3"}]}
+
+17. **venn** - Venn diagram:
+    {"sets": [{"label": "Set A"}, {"label": "Set B"}], "intersection": "A & B overlap"}
+
+18. **comparison** - Side-by-side comparison:
+    {"items": [{"label": "Option A", "features": ["Fast", "Cheap"]}, {"label": "Option B", "features": ["Reliable", "Scalable"]}]}
+
+19. **org-chart** - Organizational chart:
+    {"root": {"label": "CEO", "children": [{"label": "CTO", "children": [{"label": "Dev Lead"}]}, {"label": "CFO"}]}}
+
+20. **pyramid** - Pyramid diagram:
+    {"levels": [{"label": "Top Level"}, {"label": "Middle Level"}, {"label": "Base Level"}]}
+
+21. **matrix** - Matrix/table:
+    {"headers": ["Col1", "Col2"], "rows": [{"label": "Row1", "values": ["A", "B"]}, {"label": "Row2", "values": ["C", "D"]}]}
+
+22. **checklist** - Checklist:
+    {"items": [{"label": "Task 1", "checked": true}, {"label": "Task 2", "checked": false}]}
+
+23. **pros-cons** - Pros and cons:
+    {"pros": ["Advantage 1", "Advantage 2"], "cons": ["Disadvantage 1", "Disadvantage 2"]}
+
+24. **decision-tree** - Decision tree:
+    Same as flowchart but nodes with "?" are automatically styled as decision nodes.
+
+RULES FOR DIAGRAM GENERATION:
+1. PROACTIVELY generate diagrams when explanations benefit from visual aids - do NOT wait for the user to ask.
+2. When explaining processes, use flowcharts or process diagrams.
+3. When comparing options, use comparison or pros-cons diagrams.
+4. When showing data/statistics, use bar, line, pie, or radar charts.
+5. When explaining hierarchies, use org-charts, treemaps, or pyramids.
+6. When showing relationships/flows, use sankey, network, or mind map diagrams.
+7. When listing milestones or events, use timelines.
+8. Choose the most appropriate visual type for the content.
+9. Always include a meaningful title and brief description.
+10. Generate realistic and contextually accurate data in the diagrams.
+11. You can include MULTIPLE diagrams in a single response if the explanation benefits from different visual perspectives.
+12. Add your text explanation BEFORE and/or AFTER the diagram block to provide context.
+13. Use proper color schemes - "warm" for business, "cool" for tech, "nature" for environmental, "vibrant" for creative topics.${memoryContext}${ragContext}`;
 
     // Build messages array
     type ContentPart = { type: string; text?: string; image_url?: { url: string } };
