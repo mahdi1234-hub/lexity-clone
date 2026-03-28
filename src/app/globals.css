@@ -157,3 +157,28 @@
   width: 100% !important;
   height: 100% !important;
 }
+
+/* TLDraw custom theme to match app palette */
+.tl-theme__light {
+  --color-accent: #C48C56 !important;
+  --color-selected: #C48C56 !important;
+  --color-selection-stroke: #C48C56 !important;
+  --color-selection-fill: rgba(196, 140, 86, 0.1) !important;
+  --color-background: #FAF8F5 !important;
+  --color-panel: #F2EFEA !important;
+  --color-text: #2C2824 !important;
+  --color-text-0: #2C2824 !important;
+  --color-text-1: #5C5248 !important;
+  --color-text-3: #8B7355 !important;
+  --color-primary: #C48C56 !important;
+}
+
+.tl-theme__dark {
+  --color-accent: #C48C56 !important;
+  --color-selected: #C48C56 !important;
+  --color-selection-stroke: #C48C56 !important;
+  --color-selection-fill: rgba(196, 140, 86, 0.15) !important;
+  --color-background: #1A1714 !important;
+  --color-panel: #2C2824 !important;
+  --color-primary: #C48C56 !important;
+}

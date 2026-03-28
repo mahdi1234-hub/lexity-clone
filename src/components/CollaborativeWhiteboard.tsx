@@ -3,10 +3,11 @@
 import { useCallback, useState } from "react";
 import { Tldraw, Editor } from "tldraw";
 import "tldraw/tldraw.css";
-import { useOthers, useMyPresence, useSelf } from "../../liveblocks.config";
+import { useOthers, useMyPresence, useSelf, useThreads } from "../../liveblocks.config";
 import CollaborationCursors from "./CollaborationCursors";
 import CollaborationComments from "./CollaborationComments";
 import OverlayComments from "./OverlayComments";
+import MeetingReport from "./MeetingReport";
 
 interface CollaborativeWhiteboardProps {
   roomId: string;
@@ -17,9 +18,13 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
   const [editor, setEditor] = useState<Editor | null>(null);
   const others = useOthers();
   const self = useSelf();
+  const { threads } = useThreads();
   const [, updateMyPresence] = useMyPresence();
   const [commentsOpen, setCommentsOpen] = useState(true);
   const [showOverlay, setShowOverlay] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [reportData, setReportData] = useState<any>(null);
+  const [reportLoading, setReportLoading] = useState(false);
 
   // Track pointer for cursor sharing
   const handlePointerMove = useCallback(
@@ -38,6 +43,40 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
   const handlePointerLeave = useCallback(() => {
     updateMyPresence({ cursor: null });
   }, [updateMyPresence]);
+
+  const generateReport = useCallback(async () => {
+    setReportLoading(true);
+    try {
+      const participantNames = [
+        self?.info?.name || "You",
+        ...others.map((o) => o.info?.name || "Collaborator"),
+      ];
+
+      const res = await fetch("/api/meeting-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          threads: threads?.map((t) => ({
+            comments: t.comments?.map((c) => ({
+              body: c.body,
+              userId: (c as unknown as { userId?: string }).userId,
+            })),
+            metadata: t.metadata,
+          })),
+          roomId,
+          participants: participantNames,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to generate report");
+      const data = await res.json();
+      setReportData(data.report);
+    } catch (error) {
+      console.error("Report generation error:", error);
+    } finally {
+      setReportLoading(false);
+    }
+  }, [threads, roomId, self, others]);
 
   return (
     <div
@@ -178,6 +217,28 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
           >
             Overlay
           </button>
+
+          <div style={{ height: 16, width: 1, backgroundColor: "#3D3530" }} />
+
+          {/* Generate Report button */}
+          <button
+            onClick={generateReport}
+            disabled={reportLoading}
+            style={{
+              padding: "6px 12px",
+              fontSize: 12,
+              borderRadius: 8,
+              border: "none",
+              cursor: reportLoading ? "wait" : "pointer",
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              backgroundColor: "#C48C56",
+              color: "white",
+              opacity: reportLoading ? 0.6 : 1,
+              transition: "opacity 0.2s",
+            }}
+          >
+            {reportLoading ? "Generating..." : "Generate Report"}
+          </button>
         </div>
       </div>
 
@@ -227,6 +288,19 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
           </div>
         </div>
       </div>
+
+      {/* Meeting Report Overlay */}
+      {reportData && (
+        <MeetingReport
+          report={reportData}
+          roomId={roomId}
+          participants={[
+            self?.info?.name || "You",
+            ...others.map((o) => o.info?.name || "Collaborator"),
+          ]}
+          onClose={() => setReportData(null)}
+        />
+      )}
     </div>
   );
 }
