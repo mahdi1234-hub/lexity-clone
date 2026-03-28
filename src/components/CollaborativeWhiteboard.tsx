@@ -367,6 +367,43 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
           },
         };
         setNodes((nds) => [...nds, widgetNode]);
+      } else if (widgetType === "unsplash") {
+        const widgetNode: Node = {
+          id: widgetNodeId,
+          type: "widgetNode",
+          position,
+          data: { widgetType: "unsplash", query: "" },
+        };
+        setNodes((nds) => [...nds, widgetNode]);
+      } else if (widgetType === "table") {
+        const sampleData = [
+          { Name: "Item 1", Value: 100, Category: "A", Date: "2024-01-15" },
+          { Name: "Item 2", Value: 250, Category: "B", Date: "2024-02-20" },
+          { Name: "Item 3", Value: 180, Category: "A", Date: "2024-03-10" },
+          { Name: "Item 4", Value: 320, Category: "C", Date: "2024-04-05" },
+          { Name: "Item 5", Value: 95, Category: "B", Date: "2024-05-22" },
+        ];
+        const widgetNode: Node = {
+          id: widgetNodeId,
+          type: "widgetNode",
+          position,
+          data: { widgetType: "table", title: "Data Table", tableData: sampleData },
+        };
+        setNodes((nds) => [...nds, widgetNode]);
+      } else if (widgetType === "sheets") {
+        // Google Sheets - show connect prompt
+        const widgetNode: Node = {
+          id: widgetNodeId,
+          type: "widgetNode",
+          position,
+          data: {
+            widgetType: "calendar",
+            title: "Google Sheets",
+            connected: false,
+            onConnect: () => { window.location.href = `/api/auth/signin/google?callbackUrl=${encodeURIComponent(window.location.href)}`; },
+          },
+        };
+        setNodes((nds) => [...nds, widgetNode]);
       } else if (widgetType === "note") {
         // Add a text note node
         const noteNode: Node = {
@@ -627,6 +664,55 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
                   </svg>
                 </div>
                 <span className="text-xs text-[#F2EFEA]/70">Chart</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Media */}
+          <div className="px-3 py-3 border-t border-[#3D3530]/50">
+            <p className="text-[10px] text-[#F2EFEA]/40 uppercase tracking-wider mb-2 px-1">Media</p>
+            <div className="space-y-1">
+              <button
+                onClick={() => addManualWidget("unsplash")}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors text-left"
+              >
+                <div className="w-7 h-7 rounded-lg bg-[#F2EFEA]/10 flex items-center justify-center">
+                  <svg className="w-3.5 h-3.5 text-[#F2EFEA]/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <path d="M21 15l-5-5L5 21" />
+                  </svg>
+                </div>
+                <span className="text-xs text-[#F2EFEA]/70">Image Search</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Data */}
+          <div className="px-3 py-3 border-t border-[#3D3530]/50">
+            <p className="text-[10px] text-[#F2EFEA]/40 uppercase tracking-wider mb-2 px-1">Data</p>
+            <div className="space-y-1">
+              <button
+                onClick={() => { pendingWidgetType.current = "sheets"; setSelectorModal({ type: "sheets", title: "Google Sheets" }); }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors text-left"
+              >
+                <div className="w-7 h-7 rounded-lg bg-[#0F9D58]/10 flex items-center justify-center">
+                  <svg className="w-3.5 h-3.5 text-[#0F9D58]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18" />
+                  </svg>
+                </div>
+                <span className="text-xs text-[#F2EFEA]/70">Google Sheets</span>
+              </button>
+              <button
+                onClick={() => addManualWidget("table")}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors text-left"
+              >
+                <div className="w-7 h-7 rounded-lg bg-[#BA68C8]/10 flex items-center justify-center">
+                  <svg className="w-3.5 h-3.5 text-[#BA68C8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18" />
+                  </svg>
+                </div>
+                <span className="text-xs text-[#F2EFEA]/70">Data Table</span>
               </button>
             </div>
           </div>

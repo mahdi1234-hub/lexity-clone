@@ -10,6 +10,8 @@ const LinkCardWidget = dynamic(() => import("./canvas-widgets/LinkCardWidget"), 
 const ImageWidget = dynamic(() => import("./canvas-widgets/ImageWidget"), { ssr: false });
 const GoogleWorkspaceWidget = dynamic(() => import("./canvas-widgets/GoogleWorkspaceWidget"), { ssr: false });
 const FollowUpWidget = dynamic(() => import("./canvas-widgets/FollowUpWidget"), { ssr: false });
+const UnsplashImageWidget = dynamic(() => import("./canvas-widgets/UnsplashImageWidget"), { ssr: false });
+const DataTableWidget = dynamic(() => import("./canvas-widgets/DataTableWidget"), { ssr: false });
 
 // Widget node types:
 // - chart: Nivo chart (bar, line, pie, radar)
@@ -88,6 +90,24 @@ function WidgetCanvasNode({ data }: NodeProps) {
           <FollowUpWidget
             suggestions={d.suggestions || []}
             onSelect={d.onSelect || (() => {})}
+          />
+        );
+
+      case "unsplash":
+        return (
+          <UnsplashImageWidget
+            initialQuery={d.query}
+            expanded={d.expanded}
+          />
+        );
+
+      case "table":
+        return (
+          <DataTableWidget
+            title={d.title || "Data Table"}
+            data={d.tableData || []}
+            columns={d.columns}
+            expanded={d.expanded}
           />
         );
 
