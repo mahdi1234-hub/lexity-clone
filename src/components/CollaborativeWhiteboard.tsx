@@ -21,6 +21,7 @@ import { useOthers, useMyPresence, useSelf } from "../../liveblocks.config";
 import CollaborationCursors from "./CollaborationCursors";
 import CollaborationComments from "./CollaborationComments";
 import AICanvasNode from "./AICanvasNode";
+import WidgetCanvasNode from "./WidgetCanvasNode";
 
 interface CollaborativeWhiteboardProps {
   roomId: string;
@@ -28,6 +29,7 @@ interface CollaborativeWhiteboardProps {
 
 const nodeTypes: NodeTypes = {
   aiNode: AICanvasNode,
+  widgetNode: WidgetCanvasNode,
 };
 
 const initialNodes: Node[] = [
@@ -206,6 +208,46 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
                   );
                 }
               } catch { /* ignore */ }
+            }
+          }
+        }
+        // After streaming, parse widgets from AI response
+        if (fullContent) {
+          const widgetRegex = /:::(chart|widget|news|link|image|followup)\s*([\s\S]*?):::/g;
+          let widgetMatch;
+          let widgetIndex = 0;
+
+          while ((widgetMatch = widgetRegex.exec(fullContent)) !== null) {
+            try {
+              const widgetData = JSON.parse(widgetMatch[2].trim());
+              const widgetNodeId = `widget-${Date.now()}-${widgetIndex}`;
+              const widgetNode: Node = {
+                id: widgetNodeId,
+                type: "widgetNode",
+                position: {
+                  x: nodePosition.x + 440 + widgetIndex * 420,
+                  y: nodePosition.y + 250,
+                },
+                data: {
+                  widgetType: widgetMatch[1] === "chart" ? widgetData.type || "bar" : widgetMatch[1],
+                  ...widgetData,
+                },
+              };
+
+              setNodes((nds) => [...nds, widgetNode]);
+              setEdges((eds) => [
+                ...eds,
+                {
+                  id: `edge-${responseNodeId}-${widgetNodeId}`,
+                  source: responseNodeId,
+                  target: widgetNodeId,
+                  animated: true,
+                  style: { stroke: "#7986CB", strokeWidth: 2 },
+                },
+              ]);
+              widgetIndex++;
+            } catch {
+              // Invalid widget JSON, skip
             }
           }
         }
