@@ -21,15 +21,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       allowed: !decision.isDenied(),
       remaining: Math.max(0, remaining),
-      limit: 5,
+      limit: 10,
       resetIn: "24 hours",
     });
   } catch (error) {
     console.error("Rate limit check error:", error);
     return NextResponse.json({
       allowed: true,
-      remaining: 5,
-      limit: 5,
+      remaining: 10,
+      limit: 10,
       resetIn: "24 hours",
     });
   }

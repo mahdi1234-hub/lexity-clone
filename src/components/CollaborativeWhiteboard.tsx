@@ -178,7 +178,7 @@ export default function CollaborativeWhiteboard({ roomId }: CollaborativeWhitebo
           setNodes((nds) =>
             nds.map((n) =>
               n.id === responseNodeId
-                ? { ...n, data: { ...n.data, content: "Daily message limit reached (5/5). Please try again tomorrow.", isLoading: false, isError: true } }
+                ? { ...n, data: { ...n.data, content: "Daily message limit reached (10/10). Please try again tomorrow.", isLoading: false, isError: true } }
                 : n
             )
           );

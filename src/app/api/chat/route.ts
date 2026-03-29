@@ -81,16 +81,16 @@ export async function POST(req: NextRequest) {
   const userId = (session.user as { id?: string }).id!;
   const namespace = `user_${userId}`;
 
-  // Arcjet rate limiting: 5 messages per day per user
+  // Arcjet rate limiting: 10 messages per day per user
   try {
     const decision = await aj.protect(req, { userId });
     if (decision.isDenied()) {
       return NextResponse.json(
         {
           error: "RATE_LIMITED",
-          message: "You have reached your daily limit of 5 messages. Please try again tomorrow.",
+          message: "You have reached your daily limit of 10 messages. Please try again tomorrow.",
           remaining: 0,
-          limit: 5,
+          limit: 10,
         },
         { status: 429 }
       );

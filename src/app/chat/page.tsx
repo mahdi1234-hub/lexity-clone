@@ -223,7 +223,7 @@ export default function ChatPage() {
   const [webSearchQuery, setWebSearchQuery] = useState("");
   // Rate limiting state
   const [rateLimited, setRateLimited] = useState(false);
-  const [rateLimitRemaining, setRateLimitRemaining] = useState(5);
+  const [rateLimitRemaining, setRateLimitRemaining] = useState(10);
   // Browser agent state
   const [showBrowserAgent, setShowBrowserAgent] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -392,7 +392,7 @@ export default function ChatPage() {
             {
               id: uuidv4(),
               role: "assistant",
-              content: errorData.message || "You have reached your daily limit of 5 messages. Please try again tomorrow.",
+              content: errorData.message || "You have reached your daily limit of 10 messages. Please try again tomorrow.",
               timestamp: new Date().toISOString(),
             },
           ]);
@@ -1008,16 +1008,16 @@ export default function ChatPage() {
                     <line x1="12" y1="16" x2="12.01" y2="16" />
                   </svg>
                   <span className="text-[10px] text-red-400" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                    Daily limit reached (5/5)
+                    Daily limit reached (10/10)
                   </span>
                 </div>
               </div>
             )}
-            {!rateLimited && rateLimitRemaining < 5 && (
+            {!rateLimited && rateLimitRemaining < 10 && (
               <div className="px-3 pb-2">
                 <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#C48C56]/10 border border-[#C48C56]/20">
                   <span className="text-[10px] text-[#C48C56]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                    {rateLimitRemaining}/5 messages remaining today
+                    {rateLimitRemaining}/10 messages remaining today
                   </span>
                 </div>
               </div>
