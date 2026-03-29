@@ -6,8 +6,6 @@ import { upsertMemory, queryMemory, getConversationMessages, getRagIndex } from 
 import { generateEmbedding, chunkText } from "@/lib/embeddings";
 import { detectFileType, extractTextFromFile } from "@/lib/file-parser";
 import { v4 as uuidv4 } from "uuid";
-import aj from "@/lib/arcjet";
-
 export const maxDuration = 60;
 
 interface FileData {
@@ -80,25 +78,6 @@ export async function POST(req: NextRequest) {
 
   const userId = (session.user as { id?: string }).id!;
   const namespace = `user_${userId}`;
-
-  // Arcjet rate limiting: 10 messages per day per user
-  try {
-    const decision = await aj.protect(req, { userId });
-    if (decision.isDenied()) {
-      return NextResponse.json(
-        {
-          error: "RATE_LIMITED",
-          message: "You have reached your daily limit of 10 messages. Please try again tomorrow.",
-          remaining: 0,
-          limit: 10,
-        },
-        { status: 429 }
-      );
-    }
-  } catch (rateLimitError) {
-    console.error("Rate limit check error (non-fatal):", rateLimitError);
-    // If rate limiting fails, allow the request to proceed
-  }
 
   try {
     const formData = await req.formData();
@@ -615,9 +594,24 @@ RULES FOR DIAGRAM GENERATION:
     });
   } catch (error) {
     console.error("Chat error:", error);
-    return NextResponse.json(
-      { error: "Failed to process message" },
-      { status: 500 }
-    );
+    // Return a streamed error so the frontend can display it properly
+    const encoder = new TextEncoder();
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    const errorStream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ content: `I encountered an error: ${errorMessage}. Please check that all API keys (GROQ_API_KEY, PINECONE_API_KEY) are configured correctly.` })}\n\n`)
+        );
+        controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+        controller.close();
+      },
+    });
+    return new Response(errorStream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
+    });
   }
 }

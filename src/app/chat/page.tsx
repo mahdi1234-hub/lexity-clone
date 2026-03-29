@@ -221,9 +221,7 @@ export default function ChatPage() {
   const [webSearchStatus, setWebSearchStatus] = useState("");
   const [webSearchStreaming, setWebSearchStreaming] = useState(false);
   const [webSearchQuery, setWebSearchQuery] = useState("");
-  // Rate limiting state
-  const [rateLimited, setRateLimited] = useState(false);
-  const [rateLimitRemaining, setRateLimitRemaining] = useState(10);
+  // Rate limiting removed - no daily limits
   // Browser agent state
   const [showBrowserAgent, setShowBrowserAgent] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -334,7 +332,7 @@ export default function ChatPage() {
   }, []);
 
   const sendMessage = async () => {
-    if ((!input.trim() && pendingFiles.length === 0) || isLoading || rateLimited) return;
+    if ((!input.trim() && pendingFiles.length === 0) || isLoading) return;
 
     let convId = currentConversationId;
     if (!convId) {
@@ -382,29 +380,7 @@ export default function ChatPage() {
         body: formData,
       });
 
-      if (!res.ok) {
-        if (res.status === 429) {
-          const errorData = await res.json();
-          setRateLimited(true);
-          setRateLimitRemaining(0);
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: uuidv4(),
-              role: "assistant",
-              content: errorData.message || "You have reached your daily limit of 10 messages. Please try again tomorrow.",
-              timestamp: new Date().toISOString(),
-            },
-          ]);
-          setIsLoading(false);
-          return;
-        }
-        throw new Error("Failed to send message");
-      }
-      setRateLimitRemaining((prev) => Math.max(0, prev - 1));
-      if (rateLimitRemaining <= 1) {
-        setRateLimited(true);
-      }
+      if (!res.ok) throw new Error("Failed to send message");
 
       const reader = res.body?.getReader();
       const decoder = new TextDecoder();
@@ -998,30 +974,7 @@ export default function ChatPage() {
               </button>
             </div>
 
-            {/* Rate Limit Status */}
-            {rateLimited && (
-              <div className="px-3 pb-2">
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20">
-                  <svg className="w-4 h-4 text-red-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
-                  <span className="text-[10px] text-red-400" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                    Daily limit reached (10/10)
-                  </span>
-                </div>
-              </div>
-            )}
-            {!rateLimited && rateLimitRemaining < 10 && (
-              <div className="px-3 pb-2">
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#C48C56]/10 border border-[#C48C56]/20">
-                  <span className="text-[10px] text-[#C48C56]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                    {rateLimitRemaining}/10 messages remaining today
-                  </span>
-                </div>
-              </div>
-            )}
+
 
             <div className="p-4 border-t border-black/5">
               <div className="flex items-center gap-3">
@@ -1325,15 +1278,15 @@ export default function ChatPage() {
                   value={input}
                   onChange={handleTextareaChange}
                   onKeyDown={handleKeyDown}
-                  placeholder={rateLimited ? "Daily message limit reached. Try again tomorrow." : pendingFiles.length > 0 ? "Add a message about your files..." : "Type your message..."}
+                  placeholder={pendingFiles.length > 0 ? "Add a message about your files..." : "Type your message..."}
                   rows={1}
-                  className={`flex-1 bg-transparent resize-none outline-none text-sm p-2 max-h-[200px] placeholder:opacity-40 ${rateLimited ? "opacity-50 cursor-not-allowed" : ""}`}
+                  className="flex-1 bg-transparent resize-none outline-none text-sm p-2 max-h-[200px] placeholder:opacity-40"
                   style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                  disabled={isLoading || rateLimited}
+                  disabled={isLoading}
                 />
                 <button
                   onClick={sendMessage}
-                  disabled={(!input.trim() && pendingFiles.length === 0) || isLoading || rateLimited}
+                  disabled={(!input.trim() && pendingFiles.length === 0) || isLoading}
                   className="p-2.5 rounded-xl bg-[#2C2824] text-[#F2EFEA] transition-all hover:scale-105 disabled:opacity-30 disabled:hover:scale-100 flex-shrink-0"
                 >
                   {isLoading ? (

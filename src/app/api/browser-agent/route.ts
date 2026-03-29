@@ -1,23 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import arcjet, { fixedWindow } from "@arcjet/next";
 import { z } from "zod";
 
 export const maxDuration = 120;
-
-// Separate Arcjet instance for browser agent: 1 use per day
-const browserAgentLimiter = arcjet({
-  key: process.env.ARCJET_KEY!,
-  characteristics: ["userId"],
-  rules: [
-    fixedWindow({
-      mode: "LIVE",
-      window: "1d",
-      max: 1,
-    }),
-  ],
-});
 
 const taskSchema = z.object({
   task: z.string().min(1).max(2000),
@@ -30,26 +16,6 @@ export async function POST(req: NextRequest) {
   }
 
   const userId = (session.user as { id?: string }).id!;
-
-  // Rate limit: 1 browser agent use per day
-  try {
-    const decision = await browserAgentLimiter.protect(req, {
-      userId: `browser_${userId}`,
-    });
-    if (decision.isDenied()) {
-      return NextResponse.json(
-        {
-          error: "BROWSER_AGENT_RATE_LIMITED",
-          message: "You have used your daily browser agent session. This feature is limited to 1 use per day. Please try again tomorrow.",
-          remaining: 0,
-          limit: 1,
-        },
-        { status: 429 }
-      );
-    }
-  } catch (rateLimitError) {
-    console.error("Browser agent rate limit error (non-fatal):", rateLimitError);
-  }
 
   let body;
   try {
