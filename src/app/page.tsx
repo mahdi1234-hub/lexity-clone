@@ -104,7 +104,7 @@ export default function LandingPage() {
           </div>
 
           <button
-            onClick={() => signIn("google")}
+            onClick={() => signIn("google", { callbackUrl: "/chat" })}
             className="card-flashlight inline-flex items-center gap-3 bg-white/20 backdrop-blur-xl text-white px-8 py-4 rounded-full text-lg font-medium transition-all hover:scale-105 hover:bg-white/30 border border-white/20 cursor-pointer"
             style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
           >
