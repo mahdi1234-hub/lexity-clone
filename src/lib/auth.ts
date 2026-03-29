@@ -1,13 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import prisma from "@/lib/prisma";
-
-// Only use Prisma adapter if DATABASE_URL is configured
-const adapter = process.env.DATABASE_URL ? PrismaAdapter(prisma) : undefined;
 
 export const authOptions: NextAuthOptions = {
-  ...(adapter ? { adapter } : {}),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -31,9 +25,9 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async session({ session, token }) {
       if (session.user) {
-        (session.user as { id?: string }).id = token?.sub;
+        (session.user as { id?: string }).id = token.sub;
       }
-      (session as { accessToken?: string }).accessToken = token?.accessToken as string;
+      (session as { accessToken?: string }).accessToken = token.accessToken as string;
       return session;
     },
     async jwt({ token, account, user }) {
@@ -54,14 +48,33 @@ export const authOptions: NextAuthOptions = {
     },
   },
   events: {
-    async signIn({ user }) {
-      // Track login activity (non-blocking, won't break auth if DB is down)
-      if (user.id && process.env.DATABASE_URL) {
+    async signIn({ user, profile }) {
+      // Persist user to database in the background (non-blocking)
+      if (process.env.DATABASE_URL && user) {
         try {
-          const { trackActivity } = await import("@/lib/activity");
-          await trackActivity(user.id, "login");
-        } catch {
-          // Silently fail - don't break auth flow
+          const { default: prisma } = await import("@/lib/prisma");
+          await prisma.user.upsert({
+            where: { email: user.email || "" },
+            update: {
+              name: user.name || profile?.name,
+              image: user.image,
+              updatedAt: new Date(),
+            },
+            create: {
+              id: user.id || undefined,
+              email: user.email,
+              name: user.name || profile?.name,
+              image: user.image,
+            },
+          });
+          // Track login activity
+          const dbUser = await prisma.user.findUnique({ where: { email: user.email || "" } });
+          if (dbUser) {
+            const { trackActivity } = await import("@/lib/activity");
+            await trackActivity(dbUser.id, "login");
+          }
+        } catch (err) {
+          console.error("User sync error (non-fatal):", err);
         }
       }
     },
