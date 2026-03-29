@@ -20,6 +20,7 @@ const ObservablePlotRenderer = dynamic(() => import("./ObservablePlotRenderer"),
 const InteractiveGraphRenderer = dynamic(() => import("./InteractiveGraphRenderer"), { ssr: false });
 const TemporalNetworkRenderer = dynamic(() => import("./TemporalNetworkRenderer"), { ssr: false });
 const GeoNetworkRenderer = dynamic(() => import("./GeoNetworkRenderer"), { ssr: false });
+const DataTableRenderer = dynamic(() => import("./DataTableRenderer"), { ssr: false });
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -1003,6 +1004,7 @@ const ADVANCED_TYPES = new Set([
   "interactive-graph", "force-graph", "network-graph", "knowledge-graph",
   "temporal-network", "timeline-network", "chrono-graph",
   "geo-network", "map-network", "spatial-network",
+  "data-table", "rich-table", "sparkline-table",
 ]);
 
 // ─── Main Renderer ──────────────────────────────────────────
@@ -1075,6 +1077,23 @@ export default function DiagramRenderer({ diagram, onClose }: { diagram: Diagram
             projection: (diagram.data as any).projection,
             showGraticule: (diagram.data as any).showGraticule,
             showLabels: (diagram.data as any).showLabels,
+          }}
+        />
+      );
+    }
+
+    if (["data-table", "rich-table", "sparkline-table"].includes(typeLower)) {
+      return (
+        <DataTableRenderer
+          config={{
+            columns: (diagram.data as any).columns || [],
+            rows: (diagram.data as any).rows || [],
+            title: diagram.title,
+            description: diagram.description,
+            highlightMax: (diagram.data as any).highlightMax,
+            highlightMin: (diagram.data as any).highlightMin,
+            striped: (diagram.data as any).striped !== false,
+            compact: (diagram.data as any).compact,
           }}
         />
       );

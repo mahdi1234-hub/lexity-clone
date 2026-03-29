@@ -350,7 +350,7 @@ To render a diagram, include a JSON block wrapped in :::diagram and ::: markers 
 
 :::diagram
 {
-  "type": "bar|line|pie|radar|funnel|sankey|heatmap|treemap|radial-bar|sunburst|network|scatter|flowchart|mindmap|timeline|process|venn|comparison|org-chart|pyramid|matrix|checklist|pros-cons|decision-tree|observable-plot|interactive-graph|temporal-network|geo-network",
+  "type": "bar|line|pie|radar|funnel|sankey|heatmap|treemap|radial-bar|sunburst|network|scatter|flowchart|mindmap|timeline|process|venn|comparison|org-chart|pyramid|matrix|checklist|pros-cons|decision-tree|observable-plot|interactive-graph|temporal-network|geo-network|data-table",
   "title": "Diagram Title",
   "description": "Optional description of what this diagram shows",
   "data": { ... },
@@ -446,6 +446,9 @@ DATA FORMATS PER DIAGRAM TYPE:
 
 28. **geo-network** - Geographic/spatial network on a map (MapWeave-like) showing connections between locations:
     {"nodes": [{"id": "NYC", "label": "New York", "lat": 40.7128, "lon": -74.006, "category": "city"}, {"id": "LON", "label": "London", "lat": 51.5074, "lon": -0.1278}], "edges": [{"source": "NYC", "target": "LON", "label": "Trade route", "weight": 3}], "projection": "naturalEarth", "showGraticule": true, "showLabels": true}
+
+29. **data-table** - Rich data table with sparklines, inline bars, change indicators, and badges:
+    {"columns": [{"key": "name", "label": "Region", "type": "text"}, {"key": "value", "label": "Value", "type": "number", "format": "integer", "align": "right"}, {"key": "trend", "label": "Trend", "type": "sparkline", "width": 80}, {"key": "share", "label": "Share", "type": "bar"}, {"key": "change", "label": "Change", "type": "change"}, {"key": "status", "label": "Status", "type": "badge"}], "rows": [{"name": "North America", "value": 5200, "trend": [40, 45, 42, 50, 55, 52, 60], "share": 35, "change": 2.5, "status": "Active"}], "striped": true}
 
 RULES FOR DIAGRAM GENERATION:
 1. PROACTIVELY generate diagrams when explanations benefit from visual aids - do NOT wait for the user to ask.
