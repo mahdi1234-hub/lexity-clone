@@ -93,6 +93,8 @@
     "graphology-metrics": "^2.4.0",
     "graphology-types": "^0.24.8",
     "groq-sdk": "^1.1.2",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
     "lucide-react": "^1.7.0",
     "mammoth": "^1.12.0",
     "mapbox-gl": "^3.20.0",

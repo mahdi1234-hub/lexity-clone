@@ -1,6 +1,9 @@
 "use client";
 
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useRef } from "react";
+import dynamic from "next/dynamic";
+
+const ReportGenerator = dynamic(() => import("./ReportGenerator"), { ssr: false });
 import { ResponsiveBar } from "@nivo/bar";
 import { ResponsiveLine } from "@nivo/line";
 import { ResponsivePie } from "@nivo/pie";
@@ -113,7 +116,7 @@ interface EDADashboardProps {
 
 function ChartCard({ title, description, children, wide }: { title: string; description: string; children: React.ReactNode; wide?: boolean }) {
   return (
-    <div className={"relative rounded-xl border border-[#D5D0C8]/60 bg-white/60 backdrop-blur-sm p-4 transition-all hover:shadow-lg hover:border-[#C48C56]/30 " + (wide ? "col-span-2" : "col-span-1")} style={{ minHeight: 340 }}>
+    <div data-chart-card className={"relative rounded-xl border border-[#D5D0C8]/60 bg-white/60 backdrop-blur-sm p-4 transition-all hover:shadow-lg hover:border-[#C48C56]/30 " + (wide ? "col-span-2" : "col-span-1")} style={{ minHeight: 340 }}>
       <div className="mb-3">
         <h3 className="text-xs font-bold text-[#2C2824] uppercase tracking-wider" style={{ fontFamily: FN }}>{title}</h3>
         <p className="text-[10px] text-[#2C2824]/50 mt-0.5" style={{ fontFamily: FN }}>{description}</p>
@@ -297,6 +300,7 @@ function SigmaNetworkGraph({ data }: { data: NetworkGraphData }) {
 
 export default function EDADashboard({ data, onClose, inline }: EDADashboardProps) {
   const [activeTab, setActiveTab] = useState<"overview" | "charts" | "network" | "stats">("overview");
+  const dashboardRef = useRef<HTMLDivElement>(null);
   const renderChart = useCallback((chart: ChartConfig) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cd: any = data.chartData?.[chart.id];
@@ -331,7 +335,7 @@ export default function EDADashboard({ data, onClose, inline }: EDADashboardProp
   const cClass = inline ? "w-full bg-[#F2EFEA]/60 rounded-2xl border border-[#D5D0C8]/40 backdrop-blur-sm overflow-hidden" : "fixed inset-0 z-50 bg-[#F2EFEA] overflow-auto";
 
   return (
-    <div className={cClass}>
+    <div className={cClass} ref={dashboardRef}>
       <div className={(inline ? "" : "sticky top-0 z-10 ") + "bg-[#F2EFEA]/95 backdrop-blur-sm border-b border-[#D5D0C8]/60"}>
         <div className={(inline ? "px-4 py-3" : "max-w-7xl mx-auto px-6 py-4") + " flex items-center justify-between"}>
           <div className="flex items-center gap-3">
@@ -344,6 +348,18 @@ export default function EDADashboard({ data, onClose, inline }: EDADashboardProp
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <ReportGenerator
+              dashboardRef={dashboardRef}
+              title={data.title}
+              summary={data.summary}
+              insights={data.insights || []}
+              kpiValues={data.kpiValues || []}
+              columnStats={data.columnStats || []}
+              totalRows={data.totalRows || 0}
+              totalColumns={data.totalColumns || 0}
+              chartCount={data.charts?.length || 0}
+              dataSource="CSV Upload"
+            />
             <div className="flex bg-[#2C2824]/10 rounded-lg p-0.5">
               {(["overview", "charts", "network", "stats"] as const).map(tab => (
                 <button key={tab} onClick={() => setActiveTab(tab)} className={"px-2.5 py-1 text-[10px] font-semibold rounded-md transition-all uppercase tracking-wider " + (activeTab === tab ? "bg-[#C48C56] text-white shadow-sm" : "text-[#2C2824]/50 hover:text-[#2C2824]")} style={{ fontFamily: FN }}>{tab}</button>

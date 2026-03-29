@@ -958,6 +958,22 @@ export default function ChatPage() {
               </button>
             </div>
 
+            {/* Reports Button */}
+            <div className="px-3 pb-2">
+              <button
+                onClick={() => router.push("/reports")}
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium bg-[#9B7BA8]/10 text-[#9B7BA8] hover:bg-[#9B7BA8]/20 transition-colors"
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <path d="M14 2v6h6" />
+                  <path d="M16 13H8M16 17H8" strokeLinecap="round" />
+                </svg>
+                My Reports
+              </button>
+            </div>
+
             {/* Browser Agent Button */}
             <div className="px-3 pb-2">
               <button
