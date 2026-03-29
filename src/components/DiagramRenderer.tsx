@@ -999,8 +999,21 @@ const DIAGRAM_COMPONENTS: Record<string, React.FC<{ data: Record<string, unknown
 
 // ─── Advanced Visualization Types (handled by dedicated components) ──
 
-const ADVANCED_TYPES = new Set([
+// All Observable Plot chart types that should route to ObservablePlotRenderer
+const OBSERVABLE_PLOT_TYPES = new Set([
   "observable-plot", "plot", "observable",
+  "boxplot", "box-plot", "histogram", "density", "contour", "hexbin",
+  "waffle", "waffle-chart", "vector", "vector-field", "arrow-plot",
+  "regression", "linear-regression", "stacked-area", "stacked-bar",
+  "grouped-bar", "sparkline", "area-chart", "dot-plot", "bubble",
+  "bubble-chart", "raster", "geo-plot", "contour-plot", "density-plot",
+  "hex-plot", "violin", "strip", "beeswarm", "ridgeline",
+  "lollipop", "dumbbell", "slope", "diverging-bar", "waterfall",
+  "pareto", "bullet", "gauge", "donut-chart",
+]);
+
+const ADVANCED_TYPES = new Set([
+  ...Array.from(OBSERVABLE_PLOT_TYPES),
   "interactive-graph", "force-graph", "network-graph", "knowledge-graph",
   "temporal-network", "timeline-network", "chrono-graph",
   "geo-network", "map-network", "spatial-network",
@@ -1015,11 +1028,13 @@ export default function DiagramRenderer({ diagram, onClose }: { diagram: Diagram
 
   // Route to advanced visualization components
   if (ADVANCED_TYPES.has(typeLower)) {
-    if (["observable-plot", "plot", "observable"].includes(typeLower)) {
+    if (OBSERVABLE_PLOT_TYPES.has(typeLower)) {
+      // Use the diagram type as the plotType if it's a specific chart type (e.g. "boxplot", "histogram")
+      const isDirectType = !["observable-plot", "plot", "observable"].includes(typeLower);
       return (
         <ObservablePlotRenderer
           config={{
-            plotType: (diagram.data as any).plotType || "dot",
+            plotType: isDirectType ? typeLower : ((diagram.data as any).plotType || "dot"),
             title: diagram.title,
             description: diagram.description,
             data: (diagram.data as any).data || (diagram.data as any).items || diagram.data,
@@ -1103,10 +1118,23 @@ export default function DiagramRenderer({ diagram, onClose }: { diagram: Diagram
   const DiagramComponent = DIAGRAM_COMPONENTS[typeLower];
 
   if (!DiagramComponent) {
+    // Fallback: try to render any unknown type as Observable Plot
     return (
-      <div className="p-4 rounded-xl bg-white/60 backdrop-blur-sm border border-[#C48C56]/20">
-        <p className="text-sm text-[#2C2824]/60">Unsupported diagram type: {diagram.type}</p>
-      </div>
+      <ObservablePlotRenderer
+        config={{
+          plotType: typeLower,
+          title: diagram.title,
+          description: diagram.description,
+          data: (diagram.data as any).data || (diagram.data as any).items || diagram.data,
+          options: (diagram.data as any).options,
+          marks: (diagram.data as any).marks,
+          width: (diagram.data as any).width,
+          height: (diagram.data as any).height,
+          xLabel: (diagram.data as any).xLabel,
+          yLabel: (diagram.data as any).yLabel,
+          color: (diagram.data as any).color,
+        }}
+      />
     );
   }
 
