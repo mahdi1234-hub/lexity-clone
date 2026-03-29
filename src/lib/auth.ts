@@ -1,7 +1,11 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import prisma from "@/lib/prisma";
+import { trackActivity } from "@/lib/activity";
 
 export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -23,12 +27,13 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async session({ session, token }) {
+    async session({ session, token, user }) {
       if (session.user) {
-        (session.user as { id?: string }).id = token.sub;
+        // When using database sessions (adapter), user comes from the user param
+        // When using JWT sessions, user info comes from token
+        (session.user as { id?: string }).id = user?.id || token?.sub;
       }
-      // Pass access token to session for Google Workspace API calls
-      (session as { accessToken?: string }).accessToken = token.accessToken as string;
+      (session as { accessToken?: string }).accessToken = token?.accessToken as string;
       return session;
     },
     async jwt({ token, account }) {
@@ -39,10 +44,18 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
   },
+  events: {
+    async signIn({ user }) {
+      if (user.id) {
+        await trackActivity(user.id, "login");
+      }
+    },
+  },
+  session: {
+    strategy: "jwt",
+  },
   pages: {
     signIn: "/",
   },
-  // After sign-in, check if the user came from the collaborate page
-  // and redirect them back there
   secret: process.env.NEXTAUTH_SECRET,
 };

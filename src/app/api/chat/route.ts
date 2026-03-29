@@ -6,6 +6,9 @@ import { upsertMemory, queryMemory, getConversationMessages, getRagIndex } from 
 import { generateEmbedding, chunkText } from "@/lib/embeddings";
 import { detectFileType, extractTextFromFile } from "@/lib/file-parser";
 import { v4 as uuidv4 } from "uuid";
+import prisma from "@/lib/prisma";
+import { trackActivity } from "@/lib/activity";
+
 export const maxDuration = 60;
 
 interface FileData {
@@ -88,6 +91,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing conversationId" }, { status: 400 });
     }
 
+    // Save conversation and message to database (non-blocking)
+    try {
+      await prisma.conversation.upsert({
+        where: { id: conversationId },
+        update: { updatedAt: new Date(), title: message?.substring(0, 100) || "New Conversation" },
+        create: { id: conversationId, userId, title: message?.substring(0, 100) || "New Conversation" },
+      });
+      if (message) {
+        await prisma.message.create({
+          data: { conversationId, userId, role: "user", content: message },
+        });
+      }
+      await trackActivity(userId, "message_sent", { conversationId });
+    } catch (dbErr) {
+      console.error("DB tracking error (non-fatal):", dbErr);
+    }
+
     // Process uploaded files
     const files: FileData[] = [];
     const fileEntries = formData.getAll("files");
@@ -118,6 +138,22 @@ export async function POST(req: NextRequest) {
         }
 
         files.push(fileData);
+
+        // Track file upload in database
+        try {
+          await prisma.fileUpload.create({
+            data: {
+              userId,
+              filename: entry.name,
+              mimeType: entry.type,
+              size: entry.size,
+              url: "", // Files stored via EdgeStore or inline
+            },
+          });
+          await trackActivity(userId, "file_uploaded", { filename: entry.name, size: entry.size });
+        } catch (fileDbErr) {
+          console.error("File tracking error (non-fatal):", fileDbErr);
+        }
       }
     }
 
