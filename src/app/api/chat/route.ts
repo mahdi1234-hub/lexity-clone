@@ -350,7 +350,7 @@ To render a diagram, include a JSON block wrapped in :::diagram and ::: markers 
 
 :::diagram
 {
-  "type": "bar|line|pie|radar|funnel|sankey|heatmap|treemap|radial-bar|sunburst|network|scatter|flowchart|mindmap|timeline|process|venn|comparison|org-chart|pyramid|matrix|checklist|pros-cons|decision-tree",
+  "type": "bar|line|pie|radar|funnel|sankey|heatmap|treemap|radial-bar|sunburst|network|scatter|flowchart|mindmap|timeline|process|venn|comparison|org-chart|pyramid|matrix|checklist|pros-cons|decision-tree|observable-plot|interactive-graph|temporal-network|geo-network",
   "title": "Diagram Title",
   "description": "Optional description of what this diagram shows",
   "data": { ... },
@@ -435,20 +435,36 @@ DATA FORMATS PER DIAGRAM TYPE:
 24. **decision-tree** - Decision tree:
     Same as flowchart but nodes with "?" are automatically styled as decision nodes.
 
+25. **observable-plot** - Observable Plot (supports ALL chart types: bar, line, area, dot, scatter, histogram, boxplot, heatmap, cell, hexbin, density, contour, vector, tree, link, arrow, text, waffle, regression, stacked-bar, grouped-bar, sparkline, geo, raster):
+    {"plotType": "bar|line|area|dot|scatter|histogram|boxplot|heatmap|cell|hexbin|density|contour|vector|tree|link|arrow|waffle|regression|stacked-bar|grouped-bar|sparkline", "data": [{"label": "A", "value": 10}], "options": {"x": "label", "y": "value", "fill": "#C48C56"}, "xLabel": "Category", "yLabel": "Value"}
+
+26. **interactive-graph** - Interactive force-directed graph with draggable nodes (KeyLines/ReGraph-like):
+    {"nodes": [{"id": "A", "label": "Node A", "category": "concept", "size": 10, "description": "Details about A"}, {"id": "B", "label": "Node B", "category": "person"}], "edges": [{"source": "A", "target": "B", "label": "related to", "weight": 2}], "directed": false, "layout": "force|radial|circular", "analytics": {"showCentrality": true, "showCommunities": true}}
+
+27. **temporal-network** - Temporal/timeline network visualization (KronoGraph-like) showing how relationships evolve over time:
+    {"nodes": [{"id": "A", "label": "Entity A", "category": "person"}, {"id": "B", "label": "Entity B"}], "events": [{"source": "A", "target": "B", "time": "2020-01-15", "label": "First meeting"}, {"source": "A", "target": "B", "time": "2021-06-20", "label": "Collaboration"}]}
+
+28. **geo-network** - Geographic/spatial network on a map (MapWeave-like) showing connections between locations:
+    {"nodes": [{"id": "NYC", "label": "New York", "lat": 40.7128, "lon": -74.006, "category": "city"}, {"id": "LON", "label": "London", "lat": 51.5074, "lon": -0.1278}], "edges": [{"source": "NYC", "target": "LON", "label": "Trade route", "weight": 3}], "projection": "naturalEarth", "showGraticule": true, "showLabels": true}
+
 RULES FOR DIAGRAM GENERATION:
 1. PROACTIVELY generate diagrams when explanations benefit from visual aids - do NOT wait for the user to ask.
 2. When explaining processes, use flowcharts or process diagrams.
 3. When comparing options, use comparison or pros-cons diagrams.
-4. When showing data/statistics, use bar, line, pie, or radar charts.
+4. When showing data/statistics, use bar, line, pie, or radar charts - or use observable-plot for advanced statistical plots (histograms, boxplots, density, contour, regression, hexbin, waffle).
 5. When explaining hierarchies, use org-charts, treemaps, or pyramids.
 6. When showing relationships/flows, use sankey, network, or mind map diagrams.
-7. When listing milestones or events, use timelines.
-8. Choose the most appropriate visual type for the content.
-9. Always include a meaningful title and brief description.
-10. Generate realistic and contextually accurate data in the diagrams.
-11. You can include MULTIPLE diagrams in a single response if the explanation benefits from different visual perspectives.
-12. Add your text explanation BEFORE and/or AFTER the diagram block to provide context.
-13. Use proper color schemes - "warm" for business, "cool" for tech, "nature" for environmental, "vibrant" for creative topics.${memoryContext}${ragContext}`;
+7. When the user asks for an INTERACTIVE GRAPH with draggable nodes, use "interactive-graph" type. This supports force-directed layout with movable nodes, community detection, centrality analysis, and shortest path highlighting.
+8. When showing how relationships evolve over TIME, use "temporal-network" type. This shows events on a timeline with animated playback.
+9. When showing geographic/location-based networks (cities, trade routes, flight paths), use "geo-network" type. This plots nodes on a map with arc connections.
+10. When the user asks for Observable Plot charts, use "observable-plot" with the appropriate plotType (bar, line, area, dot, scatter, histogram, boxplot, heatmap, hexbin, density, contour, vector, tree, waffle, regression, stacked-bar, grouped-bar, sparkline).
+11. When listing milestones or events, use timelines.
+12. Choose the most appropriate visual type for the content.
+13. Always include a meaningful title and brief description.
+14. Generate realistic and contextually accurate data in the diagrams.
+15. You can include MULTIPLE diagrams in a single response if the explanation benefits from different visual perspectives.
+16. Add your text explanation BEFORE and/or AFTER the diagram block to provide context.
+17. Use proper color schemes - "warm" for business, "cool" for tech, "nature" for environmental, "vibrant" for creative topics.${memoryContext}${ragContext}`;
 
     // Build messages array
     type ContentPart = { type: string; text?: string; image_url?: { url: string } };

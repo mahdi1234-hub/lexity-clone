@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import dynamic from "next/dynamic";
 import { ResponsiveBar } from "@nivo/bar";
 import { ResponsiveLine } from "@nivo/line";
 import { ResponsivePie } from "@nivo/pie";
@@ -13,6 +14,12 @@ import { ResponsiveRadialBar } from "@nivo/radial-bar";
 import { ResponsiveSunburst } from "@nivo/sunburst";
 import { ResponsiveNetwork } from "@nivo/network";
 import { ResponsiveScatterPlot } from "@nivo/scatterplot";
+
+// Dynamic imports for advanced visualization components
+const ObservablePlotRenderer = dynamic(() => import("./ObservablePlotRenderer"), { ssr: false });
+const InteractiveGraphRenderer = dynamic(() => import("./InteractiveGraphRenderer"), { ssr: false });
+const TemporalNetworkRenderer = dynamic(() => import("./TemporalNetworkRenderer"), { ssr: false });
+const GeoNetworkRenderer = dynamic(() => import("./GeoNetworkRenderer"), { ssr: false });
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -989,11 +996,92 @@ const DIAGRAM_COMPONENTS: Record<string, React.FC<{ data: Record<string, unknown
   "pros-and-cons": ProsConsDiagram,
 };
 
+// ─── Advanced Visualization Types (handled by dedicated components) ──
+
+const ADVANCED_TYPES = new Set([
+  "observable-plot", "plot", "observable",
+  "interactive-graph", "force-graph", "network-graph", "knowledge-graph",
+  "temporal-network", "timeline-network", "chrono-graph",
+  "geo-network", "map-network", "spatial-network",
+]);
+
 // ─── Main Renderer ──────────────────────────────────────────
 
 export default function DiagramRenderer({ diagram, onClose }: { diagram: DiagramData; onClose?: () => void }) {
   const [collapsed, setCollapsed] = useState(false);
-  const DiagramComponent = DIAGRAM_COMPONENTS[diagram.type.toLowerCase()];
+  const typeLower = diagram.type.toLowerCase();
+
+  // Route to advanced visualization components
+  if (ADVANCED_TYPES.has(typeLower)) {
+    if (["observable-plot", "plot", "observable"].includes(typeLower)) {
+      return (
+        <ObservablePlotRenderer
+          config={{
+            plotType: (diagram.data as any).plotType || "dot",
+            title: diagram.title,
+            description: diagram.description,
+            data: (diagram.data as any).data || (diagram.data as any).items || diagram.data,
+            options: (diagram.data as any).options,
+            marks: (diagram.data as any).marks,
+            width: (diagram.data as any).width,
+            height: (diagram.data as any).height,
+            xLabel: (diagram.data as any).xLabel,
+            yLabel: (diagram.data as any).yLabel,
+            color: (diagram.data as any).color,
+          }}
+        />
+      );
+    }
+
+    if (["interactive-graph", "force-graph", "network-graph", "knowledge-graph"].includes(typeLower)) {
+      return (
+        <InteractiveGraphRenderer
+          config={{
+            nodes: (diagram.data as any).nodes || [],
+            edges: (diagram.data as any).edges || (diagram.data as any).links || [],
+            directed: (diagram.data as any).directed,
+            layout: (diagram.data as any).layout,
+            title: diagram.title,
+            description: diagram.description,
+            analytics: (diagram.data as any).analytics,
+          }}
+        />
+      );
+    }
+
+    if (["temporal-network", "timeline-network", "chrono-graph"].includes(typeLower)) {
+      return (
+        <TemporalNetworkRenderer
+          config={{
+            nodes: (diagram.data as any).nodes || [],
+            events: (diagram.data as any).events || (diagram.data as any).edges || [],
+            title: diagram.title,
+            description: diagram.description,
+            timeRange: (diagram.data as any).timeRange,
+            layout: (diagram.data as any).layout,
+          }}
+        />
+      );
+    }
+
+    if (["geo-network", "map-network", "spatial-network"].includes(typeLower)) {
+      return (
+        <GeoNetworkRenderer
+          config={{
+            nodes: (diagram.data as any).nodes || [],
+            edges: (diagram.data as any).edges || (diagram.data as any).links || [],
+            title: diagram.title,
+            description: diagram.description,
+            projection: (diagram.data as any).projection,
+            showGraticule: (diagram.data as any).showGraticule,
+            showLabels: (diagram.data as any).showLabels,
+          }}
+        />
+      );
+    }
+  }
+
+  const DiagramComponent = DIAGRAM_COMPONENTS[typeLower];
 
   if (!DiagramComponent) {
     return (
