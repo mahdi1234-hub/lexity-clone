@@ -2,7 +2,7 @@
 
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export default function LandingPage() {
   const { data: session, status } = useSession();
@@ -12,6 +12,37 @@ export default function LandingPage() {
       router.push("/chat");
     }
   }, [session, router]);
+
+  const [chatInput, setChatInput] = useState("");
+  const [chatMessages, setChatMessages] = useState<{ role: string; content: string }[]>([]);
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const sendGuideMessage = async () => {
+    if (!chatInput.trim() || chatLoading) return;
+    const userMsg = chatInput.trim();
+    setChatInput("");
+    setChatMessages((prev) => [...prev, { role: "user", content: userMsg }]);
+    setChatLoading(true);
+    try {
+      const res = await fetch("/api/product-guide", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMsg }),
+      });
+      const data = await res.json();
+      setChatMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
+    } catch {
+      setChatMessages((prev) => [...prev, { role: "assistant", content: "Sign in with Google to explore our full AI platform!" }]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -97,6 +128,59 @@ export default function LandingPage() {
             </svg>
             Continue with Google
           </button>
+
+          {/* Product Guide Chat Bar */}
+          <div className="mt-10 w-full max-w-xl mx-auto">
+            {chatOpen && chatMessages.length > 0 && (
+              <div className="mb-3 max-h-48 overflow-y-auto rounded-2xl bg-black/30 backdrop-blur-xl border border-white/10 p-3 space-y-2">
+                {chatMessages.map((msg, i) => (
+                  <div
+                    key={i}
+                    className={`text-sm px-3 py-2 rounded-xl ${
+                      msg.role === "user"
+                        ? "bg-white/15 text-white ml-8"
+                        : "bg-[#C48C56]/20 text-white/90 mr-8"
+                    }`}
+                    style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  >
+                    {msg.content}
+                  </div>
+                ))}
+                {chatLoading && (
+                  <div className="flex items-center gap-1.5 px-3 py-2 mr-8">
+                    <div className="w-1.5 h-1.5 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <div className="w-1.5 h-1.5 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <div className="w-1.5 h-1.5 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "300ms" }} />
+                  </div>
+                )}
+                <div ref={chatEndRef} />
+              </div>
+            )}
+            <div className="flex items-center gap-2 bg-white/15 backdrop-blur-xl rounded-full border border-white/20 px-4 py-2">
+              <svg className="w-4 h-4 text-white/50 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => { setChatInput(e.target.value); if (!chatOpen) setChatOpen(true); }}
+                onKeyDown={(e) => { if (e.key === "Enter") sendGuideMessage(); }}
+                onFocus={() => setChatOpen(true)}
+                placeholder="Ask me anything about the platform..."
+                className="flex-1 bg-transparent text-white text-sm placeholder-white/40 outline-none"
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              />
+              <button
+                onClick={sendGuideMessage}
+                disabled={!chatInput.trim() || chatLoading}
+                className="p-1.5 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors disabled:opacity-30"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
