@@ -530,15 +530,53 @@ RULES FOR DIAGRAM GENERATION:
         .catch((err) => console.error("User embedding error:", err));
     }
 
-    // Call LLM
+    // Call LLM with fallback for rate limits
     const groq = getGroqClient();
-    const response = await groq.chat.completions.create({
-      model: modelToUse,
-      messages: llmMessages as Parameters<typeof groq.chat.completions.create>[0]["messages"],
-      stream: true,
-      max_tokens: 4096,
-      temperature: 0.7,
-    });
+    const fallbackModels = [modelToUse, "llama-3.1-8b-instant", "gemma2-9b-it"];
+    let response;
+    let lastError;
+
+    for (const model of fallbackModels) {
+      try {
+        response = await groq.chat.completions.create({
+          model,
+          messages: llmMessages as Parameters<typeof groq.chat.completions.create>[0]["messages"],
+          stream: true,
+          max_tokens: 4096,
+          temperature: 0.7,
+        });
+        break; // Success, exit loop
+      } catch (err) {
+        lastError = err;
+        const errMsg = err instanceof Error ? err.message : String(err);
+        if (errMsg.includes("rate_limit") || errMsg.includes("429")) {
+          console.warn(`Rate limited on model ${model}, trying fallback...`);
+          continue; // Try next model
+        }
+        throw err; // Non-rate-limit error, throw immediately
+      }
+    }
+
+    if (!response) {
+      // All models rate limited
+      const encoder = new TextEncoder();
+      const rateLimitStream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ content: "The AI service is temporarily at capacity. Groq's free tier has a daily token limit that has been reached. Please wait a few minutes and try again, or the limit will reset within the hour." })}\n\n`)
+          );
+          controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+          controller.close();
+        },
+      });
+      return new Response(rateLimitStream, {
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+        },
+      });
+    }
 
     // Stream response
     const encoder = new TextEncoder();
@@ -597,10 +635,14 @@ RULES FOR DIAGRAM GENERATION:
     // Return a streamed error so the frontend can display it properly
     const encoder = new TextEncoder();
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    const isRateLimit = errorMessage.includes("rate_limit") || errorMessage.includes("429");
+    const userMessage = isRateLimit
+      ? "The AI service is temporarily at capacity. Please wait a few minutes and try again."
+      : `Something went wrong. ${errorMessage}`;
     const errorStream = new ReadableStream({
       start(controller) {
         controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ content: `I encountered an error: ${errorMessage}. Please check that all API keys (GROQ_API_KEY, PINECONE_API_KEY) are configured correctly.` })}\n\n`)
+          encoder.encode(`data: ${JSON.stringify({ content: userMessage })}\n\n`)
         );
         controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
         controller.close();
