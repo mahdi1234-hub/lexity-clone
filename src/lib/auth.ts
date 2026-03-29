@@ -2,10 +2,12 @@ import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/lib/prisma";
-import { trackActivity } from "@/lib/activity";
+
+// Only use Prisma adapter if DATABASE_URL is configured
+const adapter = process.env.DATABASE_URL ? PrismaAdapter(prisma) : undefined;
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  ...(adapter ? { adapter } : {}),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -27,27 +29,40 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async session({ session, token, user }) {
+    async session({ session, token }) {
       if (session.user) {
-        // When using database sessions (adapter), user comes from the user param
-        // When using JWT sessions, user info comes from token
-        (session.user as { id?: string }).id = user?.id || token?.sub;
+        (session.user as { id?: string }).id = token?.sub;
       }
       (session as { accessToken?: string }).accessToken = token?.accessToken as string;
       return session;
     },
-    async jwt({ token, account }) {
+    async jwt({ token, account, user }) {
       if (account) {
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
       }
+      if (user) {
+        token.sub = user.id;
+      }
       return token;
+    },
+    async redirect({ url, baseUrl }) {
+      // Always redirect to /chat after sign-in
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      if (url.startsWith(baseUrl)) return url;
+      return `${baseUrl}/chat`;
     },
   },
   events: {
     async signIn({ user }) {
-      if (user.id) {
-        await trackActivity(user.id, "login");
+      // Track login activity (non-blocking, won't break auth if DB is down)
+      if (user.id && process.env.DATABASE_URL) {
+        try {
+          const { trackActivity } = await import("@/lib/activity");
+          await trackActivity(user.id, "login");
+        } catch {
+          // Silently fail - don't break auth flow
+        }
       }
     },
   },
