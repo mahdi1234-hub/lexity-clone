@@ -13,6 +13,7 @@
     "@blocknote/core": "^0.47.3",
     "@blocknote/mantine": "^0.47.3",
     "@blocknote/react": "^0.47.3",
+    "@browserbasehq/stagehand": "^3.2.0",
     "@deck.gl/aggregation-layers": "^9.2.11",
     "@deck.gl/core": "^9.2.11",
     "@deck.gl/geo-layers": "^9.2.11",

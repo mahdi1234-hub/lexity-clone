@@ -18,6 +18,7 @@ const KeplerMapWrapper = dynamic(() => import("@/components/KeplerMapWrapper"), 
 const SolarAnalytics = dynamic(() => import("@/components/SolarAnalytics"), { ssr: false });
 const SiteAnalytics = dynamic(() => import("@/components/SiteAnalytics"), { ssr: false });
 const DiagramRenderer = dynamic(() => import("@/components/DiagramRenderer"), { ssr: false });
+const BrowserAgent = dynamic(() => import("@/components/BrowserAgent"), { ssr: false });
 
 interface MessageFile {
   id: string;
@@ -223,6 +224,8 @@ export default function ChatPage() {
   // Rate limiting state
   const [rateLimited, setRateLimited] = useState(false);
   const [rateLimitRemaining, setRateLimitRemaining] = useState(5);
+  // Browser agent state
+  const [showBrowserAgent, setShowBrowserAgent] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -979,6 +982,22 @@ export default function ChatPage() {
               </button>
             </div>
 
+            {/* Browser Agent Button */}
+            <div className="px-3 pb-2">
+              <button
+                onClick={() => setShowBrowserAgent(true)}
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium bg-gradient-to-r from-[#C48C56]/10 to-[#8B6B3D]/10 text-[#C48C56] hover:from-[#C48C56]/20 hover:to-[#8B6B3D]/20 transition-all border border-[#C48C56]/10"
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
+                  <path d="M12 6v6l4 2" strokeLinecap="round" />
+                </svg>
+                Browser Agent
+                <span className="ml-auto text-[9px] opacity-50">1/day</span>
+              </button>
+            </div>
+
             {/* Rate Limit Status */}
             {rateLimited && (
               <div className="px-3 pb-2">
@@ -1453,6 +1472,11 @@ export default function ChatPage() {
           uploadResult={automlUploadResult}
           onClose={() => { setAutomlUploadResult(null); setAutomlSessionId(""); }}
         />
+      )}
+
+      {/* Browser Agent Overlay */}
+      {showBrowserAgent && (
+        <BrowserAgent onClose={() => setShowBrowserAgent(false)} />
       )}
     </div>
   );
