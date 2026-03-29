@@ -52,27 +52,14 @@ export const authOptions: NextAuthOptions = {
       // Persist user to database in the background (non-blocking)
       if (process.env.DATABASE_URL && user) {
         try {
-          const { default: prisma } = await import("@/lib/prisma");
-          await prisma.user.upsert({
-            where: { email: user.email || "" },
-            update: {
-              name: user.name || profile?.name,
-              image: user.image,
-              updatedAt: new Date(),
-            },
-            create: {
-              id: user.id || undefined,
-              email: user.email,
-              name: user.name || profile?.name,
-              image: user.image,
-            },
+          const { ensureUser, trackActivity } = await import("@/lib/activity");
+          const dbUserId = await ensureUser({
+            id: user.id,
+            name: user.name || profile?.name,
+            email: user.email,
+            image: user.image,
           });
-          // Track login activity
-          const dbUser = await prisma.user.findUnique({ where: { email: user.email || "" } });
-          if (dbUser) {
-            const { trackActivity } = await import("@/lib/activity");
-            await trackActivity(dbUser.id, "login");
-          }
+          await trackActivity(dbUserId, "login");
         } catch (err) {
           console.error("User sync error (non-fatal):", err);
         }

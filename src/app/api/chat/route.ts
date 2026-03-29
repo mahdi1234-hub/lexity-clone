@@ -7,7 +7,7 @@ import { generateEmbedding, chunkText } from "@/lib/embeddings";
 import { detectFileType, extractTextFromFile } from "@/lib/file-parser";
 import { v4 as uuidv4 } from "uuid";
 import prisma from "@/lib/prisma";
-import { trackActivity } from "@/lib/activity";
+import { trackActivity, ensureUser } from "@/lib/activity";
 
 export const maxDuration = 60;
 
@@ -93,17 +93,23 @@ export async function POST(req: NextRequest) {
 
     // Save conversation and message to database (non-blocking)
     try {
+      const dbUserId = await ensureUser({
+        id: userId,
+        name: session.user.name,
+        email: session.user.email,
+        image: session.user.image,
+      });
       await prisma.conversation.upsert({
         where: { id: conversationId },
         update: { updatedAt: new Date(), title: message?.substring(0, 100) || "New Conversation" },
-        create: { id: conversationId, userId, title: message?.substring(0, 100) || "New Conversation" },
+        create: { id: conversationId, userId: dbUserId, title: message?.substring(0, 100) || "New Conversation" },
       });
       if (message) {
         await prisma.message.create({
-          data: { conversationId, userId, role: "user", content: message },
+          data: { conversationId, userId: dbUserId, role: "user", content: message },
         });
       }
-      await trackActivity(userId, "message_sent", { conversationId });
+      await trackActivity(dbUserId, "message_sent", { conversationId });
     } catch (dbErr) {
       console.error("DB tracking error (non-fatal):", dbErr);
     }
