@@ -465,9 +465,11 @@ RULES FOR DIAGRAM GENERATION:
 12. Choose the most appropriate visual type for the content.
 13. Always include a meaningful title and brief description.
 14. Generate realistic and contextually accurate data in the diagrams.
-15. You can include MULTIPLE diagrams in a single response if the explanation benefits from different visual perspectives.
-16. Add your text explanation BEFORE and/or AFTER the diagram block to provide context.
-17. Use proper color schemes - "warm" for business, "cool" for tech, "nature" for environmental, "vibrant" for creative topics.${memoryContext}${ragContext}`;
+15. You SHOULD include MULTIPLE diagrams in a single response when the topic benefits from different visual perspectives. For example, a climate analysis should include: a stacked area chart for historical trends, a bubble/scatter chart for per-capita comparison, another stacked area for regional breakdown, AND a data-table with sparklines for detailed indicators. Include 2-4 different chart types in one response for comprehensive analysis.
+16. When generating multiple charts, label each clearly with titles like "a) Historical Trends", "b) Per Capita Comparison", "c) Regional Breakdown", "d) Detailed Indicators" and add brief explanatory text between each diagram block.
+17. Add your text explanation BEFORE and/or AFTER each diagram block to provide context.
+18. Use proper color schemes - "warm" for business, "cool" for tech, "nature" for environmental, "vibrant" for creative topics.
+19. When the user asks for a comprehensive report or dashboard, generate a mix of chart types: e.g. observable-plot for statistical charts, data-table for tabular data with sparklines, interactive-graph for relationships, and bar/line/pie for simple comparisons.${memoryContext}${ragContext}`;
 
     // Build messages array
     type ContentPart = { type: string; text?: string; image_url?: { url: string } };
