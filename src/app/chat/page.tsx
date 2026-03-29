@@ -19,6 +19,7 @@ const SolarAnalytics = dynamic(() => import("@/components/SolarAnalytics"), { ss
 const SiteAnalytics = dynamic(() => import("@/components/SiteAnalytics"), { ssr: false });
 const DiagramRenderer = dynamic(() => import("@/components/DiagramRenderer"), { ssr: false });
 const BrowserAgent = dynamic(() => import("@/components/BrowserAgent"), { ssr: false });
+const VoiceAgent = dynamic(() => import("@/components/VoiceAgent"), { ssr: false });
 
 interface MessageFile {
   id: string;
@@ -224,6 +225,8 @@ export default function ChatPage() {
   // Rate limiting removed - no daily limits
   // Browser agent state
   const [showBrowserAgent, setShowBrowserAgent] = useState(false);
+  // Voice agent state
+  const [showVoiceAgent, setShowVoiceAgent] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1354,9 +1357,24 @@ export default function ChatPage() {
             </div>
           )}
 
-          {/* Action Buttons (Web Search + Graph + Geo) */}
+          {/* Action Buttons (Web Search + Graph + Geo + Voice) */}
           <div className="px-4 pb-2">
             <div className="max-w-3xl mx-auto flex items-center justify-center gap-2">
+              {/* Voice Agent */}
+              <button
+                onClick={() => setShowVoiceAgent(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#2C2824]/60 hover:text-[#C48C56] hover:bg-[#C48C56]/10 rounded-lg transition-all"
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                title="Talk to AI voice agent"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                  <line x1="12" y1="19" x2="12" y2="23" />
+                  <line x1="8" y1="23" x2="16" y2="23" />
+                </svg>
+                Voice
+              </button>
               {/* Web Search - always visible */}
               <button
                 onClick={() => {
@@ -1446,6 +1464,11 @@ export default function ChatPage() {
       {/* Browser Agent Overlay */}
       {showBrowserAgent && (
         <BrowserAgent onClose={() => setShowBrowserAgent(false)} />
+      )}
+
+      {/* Voice Agent Overlay */}
+      {showVoiceAgent && (
+        <VoiceAgent onClose={() => setShowVoiceAgent(false)} />
       )}
     </div>
   );
