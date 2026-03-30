@@ -191,28 +191,43 @@ function FilePreviewCard({
 
 function TypewriterTitle() {
   const fullText = "Welcome To Lexity !";
-  const [displayed, setDisplayed] = useState("");
+  const [charIndex, setCharIndex] = useState(0);
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    let i = 0;
-    const interval = setInterval(() => {
-      if (i < fullText.length) {
-        setDisplayed(fullText.slice(0, i + 1));
-        i++;
-      } else {
-        setDone(true);
-        clearInterval(interval);
+    if (charIndex < fullText.length) {
+      const timeout = setTimeout(() => setCharIndex((prev) => prev + 1), 70);
+      return () => clearTimeout(timeout);
+    } else {
+      setDone(true);
+    }
+  }, [charIndex]);
+
+  const displayed = fullText.slice(0, charIndex);
+
+  // Render with "Lexity" in accent color when it appears
+  const lexityStart = fullText.indexOf("Lexity");
+  const parts: React.ReactNode[] = [];
+  for (let i = 0; i < displayed.length; i++) {
+    const isLexity = i >= lexityStart && i < lexityStart + 6;
+    if (isLexity) {
+      // Collect the full visible portion of "Lexity"
+      if (i === lexityStart) {
+        const end = Math.min(displayed.length, lexityStart + 6);
+        parts.push(
+          <span key="lexity" className="text-[#C48C56] italic">
+            {displayed.slice(lexityStart, end)}
+          </span>
+        );
       }
-    }, 70);
-    return () => clearInterval(interval);
-  }, []);
+      continue;
+    }
+    parts.push(<span key={i}>{displayed[i]}</span>);
+  }
 
   return (
-    <span className="inline-flex items-center gap-0.5">
-      <span>Welcome To </span>
-      <span className="text-[#C48C56] italic">{displayed.replace("Welcome To ", "").replace(" !", "")}</span>
-      {displayed.includes("!") && <span> !</span>}
+    <span className="inline-flex items-baseline">
+      <span>{parts}</span>
       {!done && (
         <span className="inline-block w-[2px] h-[1.1em] bg-[#C48C56] ml-0.5 animate-pulse" />
       )}
