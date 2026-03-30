@@ -287,6 +287,108 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Solar Dashboard CTA Section */}
+      <section className="py-24 bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-0 left-0 w-72 h-72 bg-yellow-400/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-orange-400/10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3"></div>
+
+        <div className="max-w-5xl mx-auto px-6 lg:px-12 relative z-10">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-yellow-400/10 text-yellow-300 px-4 py-1.5 rounded-full text-xs uppercase tracking-widest mb-6 border border-yellow-400/20">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+              New Feature
+            </div>
+            <h2
+              className="text-4xl md:text-5xl font-light text-white tracking-tight mb-5"
+              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            >
+              Real-Time AI Dashboard
+              <br />
+              <span className="text-yellow-300">Tunisia Solar Panel Market</span>
+            </h2>
+            <p
+              className="text-white/60 text-lg max-w-2xl mx-auto leading-relaxed font-light"
+              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            >
+              Explore live market data, pricing trends, and AI-powered insights for the Tunisian solar energy sector. Powered by Perspective.js and Tavily AI.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 text-center">
+              <div className="w-10 h-10 mx-auto mb-3 rounded-full bg-yellow-400/20 flex items-center justify-center">
+                <svg className="w-5 h-5 text-yellow-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                </svg>
+              </div>
+              <h3 className="text-white font-medium mb-1" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Live Market Data</h3>
+              <p className="text-white/50 text-sm font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Real-time pricing and trend analysis</p>
+            </div>
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 text-center">
+              <div className="w-10 h-10 mx-auto mb-3 rounded-full bg-yellow-400/20 flex items-center justify-center">
+                <svg className="w-5 h-5 text-yellow-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                </svg>
+              </div>
+              <h3 className="text-white font-medium mb-1" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>AI-Powered Insights</h3>
+              <p className="text-white/50 text-sm font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Tavily AI for intelligent data analysis</p>
+            </div>
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 text-center">
+              <div className="w-10 h-10 mx-auto mb-3 rounded-full bg-yellow-400/20 flex items-center justify-center">
+                <svg className="w-5 h-5 text-yellow-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <line x1="3" y1="9" x2="21" y2="9" />
+                  <line x1="9" y1="21" x2="9" y2="9" />
+                </svg>
+              </div>
+              <h3 className="text-white font-medium mb-1" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Interactive Dashboards</h3>
+              <p className="text-white/50 text-sm font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Perspective.js streaming visualizations</p>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <a
+              href="https://github.com/mahdi1234-hub/trintospec"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-[#1a1a2e] px-10 py-4 rounded-full text-lg font-semibold transition-all hover:scale-105 hover:shadow-xl hover:shadow-yellow-400/25 cursor-pointer"
+              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+              </svg>
+              Explore Solar Dashboard
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </a>
+            <p
+              className="mt-4 text-white/40 text-sm font-light"
+              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            >
+              Enable all features with the Real-time AI Dashboard for Tunisia Solar Panel Market
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Platform Guide Book Viewer */}
       <LexityBookViewer />
 
