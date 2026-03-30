@@ -68,7 +68,7 @@ export default function WelcomeModal() {
             <div className="absolute -inset-2 rounded-full bg-gradient-to-b from-[#C48C56]/20 to-[#C48C56]/5 blur-md" />
             <div className="relative w-24 h-24 rounded-full border-[3px] border-[#C48C56]/30 overflow-hidden shadow-[0_8px_24px_rgba(196,140,86,0.2)]">
               <img
-                src="https://github.com/mahdi1234-hub.png"
+                src="https://pub-1407f82391df4ab1951418d04be76914.r2.dev/uploads/291f6bbf-3484-4dd4-a26e-531b1d4db788.jpg"
                 alt="Louati Mahdi"
                 className="w-full h-full object-cover"
                 onError={(e) => {
