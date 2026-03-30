@@ -189,6 +189,37 @@ function FilePreviewCard({
   );
 }
 
+function TypewriterTitle() {
+  const fullText = "Welcome To Lexity !";
+  const [displayed, setDisplayed] = useState("");
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i < fullText.length) {
+        setDisplayed(fullText.slice(0, i + 1));
+        i++;
+      } else {
+        setDone(true);
+        clearInterval(interval);
+      }
+    }, 70);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <span className="inline-flex items-center gap-0.5">
+      <span>Welcome To </span>
+      <span className="text-[#C48C56] italic">{displayed.replace("Welcome To ", "").replace(" !", "")}</span>
+      {displayed.includes("!") && <span> !</span>}
+      {!done && (
+        <span className="inline-block w-[2px] h-[1.1em] bg-[#C48C56] ml-0.5 animate-pulse" />
+      )}
+    </span>
+  );
+}
+
 export default function ChatPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -1093,7 +1124,7 @@ export default function ChatPage() {
               className="text-lg font-light tracking-tight opacity-80"
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             >
-              AI Assistant
+              <TypewriterTitle />
             </h1>
           </div>
 
