@@ -359,9 +359,7 @@ export default function LandingPage() {
 
           <div className="text-center">
             <a
-              href="https://github.com/mahdi1234-hub/trintospec"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/solar-dashboard"
               className="inline-flex items-center gap-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-[#1a1a2e] px-10 py-4 rounded-full text-lg font-semibold transition-all hover:scale-105 hover:shadow-xl hover:shadow-yellow-400/25 cursor-pointer"
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             >
