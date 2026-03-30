@@ -492,6 +492,57 @@ DATA FORMATS PER DIAGRAM TYPE:
 29. **data-table** - Rich data table with sparklines, inline bars, change indicators, and badges:
     {"columns": [{"key": "name", "label": "Region", "type": "text"}, {"key": "value", "label": "Value", "type": "number", "format": "integer", "align": "right"}, {"key": "trend", "label": "Trend", "type": "sparkline", "width": 80}, {"key": "share", "label": "Share", "type": "bar"}, {"key": "change", "label": "Change", "type": "change"}, {"key": "status", "label": "Status", "type": "badge"}], "rows": [{"name": "North America", "value": 5200, "trend": [40, 45, 42, 50, 55, 52, 60], "share": 35, "change": 2.5, "status": "Active"}], "striped": true}
 
+IMPORTANT - BRANDED PDF DOCUMENT GENERATION CAPABILITY:
+You can generate high-quality, beautifully designed, branded PDF documents inline in the chat. When a user asks you to create a report, document, whitepaper, guide, marketing material, or any PDF content, you MUST generate a :::pdf block.
+
+To render a branded PDF, include a JSON block wrapped in :::pdf and ::: markers in your response:
+
+:::pdf
+{
+  "title": "Main Title of the Document",
+  "subtitle": "Subtitle or Tagline",
+  "description": "A brief description of what this document covers. This appears on the cover and below the viewer.",
+  "keywords": ["Keyword1", "Keyword2", "Keyword3"],
+  "backgroundImage": "https://images.unsplash.com/photo-XXXX?w=1200&q=80",
+  "accentColor": "#C48C56",
+  "pages": [
+    {
+      "pageTitle": null,
+      "sections": [{"body": "This is the cover page content - title/subtitle/description are auto-rendered"}]
+    },
+    {
+      "pageTitle": "Chapter 1: Introduction",
+      "sections": [
+        {
+          "heading": "Overview",
+          "body": "Detailed paragraph text here...",
+          "image": "https://images.unsplash.com/photo-YYYY?w=800&q=80",
+          "imageAlt": "Description of image"
+        },
+        {
+          "heading": "Key Findings",
+          "body": "More content here..."
+        }
+      ]
+    }
+  ]
+}
+:::
+
+RULES FOR PDF GENERATION:
+1. ALWAYS generate a PDF when the user asks for a report, document, whitepaper, guide, analysis, marketing material, brochure, or any content meant to be downloaded/shared.
+2. The first page (index 0) is ALWAYS the cover page - its title/subtitle/description are auto-rendered with a beautiful hero background image. Keep its sections minimal.
+3. Maximum 4 pages total (including cover). If the user specifies fewer pages, respect that. Default to the number needed for the content.
+4. EVERY PDF must include the current date/time (auto-added by the viewer) and footer "Made With Love By Louati Mahdi" (auto-added).
+5. Choose a relevant, high-quality Unsplash background image URL for the cover (use real unsplash URLs like https://images.unsplash.com/photo-...).
+6. Use an appropriate accent color for the topic (e.g., green for sustainability, blue for tech, gold for business).
+7. Include relevant keywords/tags that describe the document.
+8. Write rich, professional, SEO-friendly content in each section. Be thorough and detailed.
+9. Include relevant section images from Unsplash where they add value.
+10. Structure content with clear headings, subheadings, and well-organized paragraphs.
+11. The content must EXACTLY match what the user requested - topic, scope, and any specific requirements.
+12. If the user specifies the number of pages (up to 4), generate exactly that many pages.
+
 RULES FOR DIAGRAM GENERATION:
 1. PROACTIVELY generate diagrams when explanations benefit from visual aids - do NOT wait for the user to ask.
 2. When explaining processes, use flowcharts or process diagrams.

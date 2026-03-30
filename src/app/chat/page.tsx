@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import dynamic from "next/dynamic";
 import type { FormSchema, FormSubmissionData } from "@/types/form-schema";
 import type { DiagramData } from "@/components/DiagramRenderer";
+import type { BrandedPDFData } from "@/components/BrandedPDFViewer";
 import WebSearchResults from "@/components/WebSearchResults";
 
 const EDADashboard = dynamic(() => import("@/components/EDADashboard"), { ssr: false });
@@ -20,6 +21,7 @@ const SiteAnalytics = dynamic(() => import("@/components/SiteAnalytics"), { ssr:
 const DiagramRenderer = dynamic(() => import("@/components/DiagramRenderer"), { ssr: false });
 const BrowserAgent = dynamic(() => import("@/components/BrowserAgent"), { ssr: false });
 const VoiceAgent = dynamic(() => import("@/components/VoiceAgent"), { ssr: false });
+const BrandedPDFViewer = dynamic(() => import("@/components/BrandedPDFViewer"), { ssr: false });
 
 interface MessageFile {
   id: string;
@@ -472,13 +474,14 @@ export default function ChatPage() {
     setPendingFiles((prev) => [...prev, ...newFiles]);
   }, []);
 
-  // Parse :::form and :::diagram blocks from AI response content
-  const parseMessageContent = useCallback((content: string): { textParts: string[]; formSchemas: FormSchema[]; diagrams: DiagramData[] } => {
+  // Parse :::form, :::diagram, and :::pdf blocks from AI response content
+  const parseMessageContent = useCallback((content: string): { textParts: string[]; formSchemas: FormSchema[]; diagrams: DiagramData[]; pdfDocuments: BrandedPDFData[] } => {
     const formSchemas: FormSchema[] = [];
     const diagrams: DiagramData[] = [];
+    const pdfDocuments: BrandedPDFData[] = [];
     const textParts: string[] = [];
-    // Match both :::form and :::diagram blocks
-    const blockRegex = /:::(form|diagram)\s*([\s\S]*?):::/g;
+    // Match :::form, :::diagram, and :::pdf blocks
+    const blockRegex = /:::(form|diagram|pdf)\s*([\s\S]*?):::/g;
     let lastIndex = 0;
     let match;
 
@@ -493,6 +496,8 @@ export default function ChatPage() {
           formSchemas.push(parsed as FormSchema);
         } else if (blockType === "diagram") {
           diagrams.push(parsed as DiagramData);
+        } else if (blockType === "pdf") {
+          pdfDocuments.push(parsed as BrandedPDFData);
         }
       } catch {
         textParts.push(match[0]);
@@ -502,9 +507,9 @@ export default function ChatPage() {
 
     const after = content.slice(lastIndex).trim();
     if (after) textParts.push(after);
-    if (textParts.length === 0 && formSchemas.length === 0 && diagrams.length === 0) textParts.push(content);
+    if (textParts.length === 0 && formSchemas.length === 0 && diagrams.length === 0 && pdfDocuments.length === 0) textParts.push(content);
 
-    return { textParts, formSchemas, diagrams };
+    return { textParts, formSchemas, diagrams, pdfDocuments };
   }, []);
 
   // Handle form submission - send data back to AI as context
@@ -1109,7 +1114,7 @@ export default function ChatPage() {
               )}
 
               {messages.map((message) => {
-                const { textParts, formSchemas: parsedForms, diagrams: parsedDiagrams } = parseMessageContent(message.content);
+                const { textParts, formSchemas: parsedForms, diagrams: parsedDiagrams, pdfDocuments: parsedPDFs } = parseMessageContent(message.content);
                 return (
                   <div key={message.id}>
                     <div
@@ -1177,6 +1182,13 @@ export default function ChatPage() {
                         <div className="w-full max-w-[95%]">
                           <DiagramRenderer diagram={diagram} />
                         </div>
+                      </div>
+                    ))}
+
+                    {/* Render branded PDF documents from AI response */}
+                    {message.role === "assistant" && parsedPDFs.length > 0 && parsedPDFs.map((pdfData, pIdx) => (
+                      <div key={`pdf-${message.id}-${pIdx}`} className="flex justify-start mt-3">
+                        <BrandedPDFViewer data={pdfData} />
                       </div>
                     ))}
                   </div>
