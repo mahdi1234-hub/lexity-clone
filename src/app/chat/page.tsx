@@ -22,6 +22,7 @@ const DiagramRenderer = dynamic(() => import("@/components/DiagramRenderer"), { 
 const BrowserAgent = dynamic(() => import("@/components/BrowserAgent"), { ssr: false });
 const VoiceAgent = dynamic(() => import("@/components/VoiceAgent"), { ssr: false });
 const BrandedPDFViewer = dynamic(() => import("@/components/BrandedPDFViewer"), { ssr: false });
+const CosmographAnalytics = dynamic(() => import("@/components/CosmographAnalytics"), { ssr: false });
 
 interface MessageFile {
   id: string;
@@ -214,6 +215,10 @@ export default function ChatPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [geoVisualizations, setGeoVisualizations] = useState<any[]>([]);
   const [geoLoading, setGeoLoading] = useState(false);
+  // Cosmograph graph analytics state
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [cosmographData, setCosmographData] = useState<any>(null);
+  const [cosmographLoading, setCosmographLoading] = useState(false);
   // Web search state
   const [webSearchActive, setWebSearchActive] = useState(false);
   const [webSearchSources, setWebSearchSources] = useState<{url:string;title:string;description?:string;content?:string;markdown?:string;favicon?:string;image?:string;siteName?:string}[]>([]);
@@ -686,6 +691,32 @@ export default function ChatPage() {
       ]);
     } finally {
       setAutomlLoading(false);
+    }
+  };
+
+  const triggerCosmograph = async () => {
+    if (!lastCsvFile || cosmographLoading) return;
+    setCosmographLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", lastCsvFile);
+      const res = await fetch("/api/graph-analytics", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Graph analytics failed");
+      const data = await res.json();
+      setCosmographData(data);
+    } catch (error) {
+      console.error("Cosmograph analytics error:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: uuidv4(),
+          role: "assistant",
+          content: "Failed to generate graph network analytics. Please try again with a valid CSV file.",
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    } finally {
+      setCosmographLoading(false);
     }
   };
 
@@ -1381,6 +1412,14 @@ export default function ChatPage() {
                   >
                     {automlLoading ? "Loading..." : "AutoML Pipeline"}
                   </button>
+                  <button
+                    onClick={triggerCosmograph}
+                    disabled={cosmographLoading}
+                    className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-[#7986CB] to-[#5C6BC0] text-white rounded-lg hover:shadow-md transition-all disabled:opacity-50"
+                    style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  >
+                    {cosmographLoading ? "Analyzing..." : "Graph Network"}
+                  </button>
                 </div>
               </div>
             </div>
@@ -1498,6 +1537,11 @@ export default function ChatPage() {
       {/* Voice Agent Overlay */}
       {showVoiceAgent && (
         <VoiceAgent onClose={() => setShowVoiceAgent(false)} />
+      )}
+
+      {/* Cosmograph Graph Network Analytics Overlay */}
+      {cosmographData && (
+        <CosmographAnalytics data={cosmographData} onClose={() => setCosmographData(null)} />
       )}
     </div>
   );
