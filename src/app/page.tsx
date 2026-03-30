@@ -287,6 +287,120 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Solar Dashboard CTA Section */}
+      <section className="relative border-b border-[#d9d1c5] bg-[#f5f1ea] overflow-hidden">
+        {/* subtle atmospheric wash */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div
+            className="absolute inset-0"
+            style={{
+              background: "radial-gradient(circle at top left, rgba(47,93,80,0.05), transparent 28%), radial-gradient(circle at bottom right, rgba(24,21,18,0.03), transparent 26%)",
+            }}
+          ></div>
+        </div>
+
+        <div className="relative max-w-[1380px] mx-auto grid lg:grid-cols-[0.34fr_1fr]">
+          {/* Left Rail */}
+          <div className="border-b lg:border-b-0 lg:border-r border-[#d9d1c5] px-6 sm:px-8 lg:px-10 py-12 lg:py-16">
+            <div className="lg:sticky lg:top-32">
+              <div className="inline-flex items-center gap-3 text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-[#6f675f] mb-8" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                <span className="inline-block h-[6px] w-[6px] rounded-full bg-[#2F5D50]"></span>
+                Solar Dashboard
+              </div>
+
+              <p className="max-w-[14rem] text-[13px] leading-7 text-[#7a7268] font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                A real-time market intelligence platform shaped by AI, streaming data, and interactive visualizations that evolve with the Tunisian solar market.
+              </p>
+            </div>
+          </div>
+
+          {/* Right Content */}
+          <div className="px-6 sm:px-8 lg:px-14 py-14 sm:py-16 lg:py-20">
+            <div className="max-w-[980px]">
+              <h2
+                className="tracking-[-0.04em] leading-[1.04] text-[2.2rem] sm:text-[2.8rem] md:text-[3.4rem] lg:text-[4.2rem] text-[#181512]"
+                style={{ fontFamily: "'Instrument Serif', 'Plus Jakarta Sans', serif" }}
+              >
+                Explore the market that <span className="italic text-[#2F5D50]">powers</span> Tunisia&apos;s solar future — live data, AI insights, and real-time analytics.
+              </h2>
+
+              <div className="mt-10 lg:mt-12 grid md:grid-cols-[1fr_0.9fr] gap-10 lg:gap-14 items-start pt-8 border-t border-[#d9d1c5]">
+                {/* Copy */}
+                <div className="space-y-6">
+                  <p className="text-[15px] sm:text-[16px] leading-8 text-[#5f5851] font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    Track solar panel pricing across 9 Tunisian regions, monitor supplier activity, and access AI-curated market intelligence — all streaming in real time through an interactive Perspective.js dashboard.
+                  </p>
+
+                  <p className="text-[15px] sm:text-[16px] leading-8 text-[#5f5851] font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    Powered by Tavily AI for intelligent data enrichment and Perspective.js for high-performance streaming visualizations that update every 10 milliseconds.
+                  </p>
+
+                  {/* small markers */}
+                  <div className="pt-4 grid sm:grid-cols-3 gap-5">
+                    <div className="border-t border-[#d9d1c5] pt-4">
+                      <p className="text-[10px] uppercase tracking-[0.14em] text-[#8a8178] mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>01</p>
+                      <p className="text-[13px] leading-6 text-[#1f1b18]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Live market data</p>
+                    </div>
+                    <div className="border-t border-[#d9d1c5] pt-4">
+                      <p className="text-[10px] uppercase tracking-[0.14em] text-[#8a8178] mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>02</p>
+                      <p className="text-[13px] leading-6 text-[#1f1b18]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>AI-powered insights</p>
+                    </div>
+                    <div className="border-t border-[#d9d1c5] pt-4">
+                      <p className="text-[10px] uppercase tracking-[0.14em] text-[#8a8178] mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>03</p>
+                      <p className="text-[13px] leading-6 text-[#1f1b18]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Interactive dashboards</p>
+                    </div>
+                  </div>
+
+                  {/* CTA Button */}
+                  <div className="pt-6">
+                    <a
+                      href="/solar-dashboard"
+                      className="inline-flex items-center gap-3 bg-[#2C2824] text-[#F2EFEA] px-8 py-4 rounded-full text-base font-medium transition-all hover:scale-105 hover:bg-[#2F5D50] cursor-pointer"
+                      style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                    >
+                      Explore Solar Dashboard
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Image Block */}
+                <div className="group relative">
+                  <div className="relative overflow-hidden bg-[#ebe5dc] min-h-[420px] lg:min-h-[500px]">
+                    <img
+                      src="https://images.unsplash.com/photo-1509391366360-2e959784a276?w=900&q=80"
+                      alt="Solar panels in Tunisia"
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.025]"
+                    />
+                    {/* inner frame */}
+                    <div className="absolute inset-5 sm:inset-6 border border-[rgba(255,255,255,0.55)] transition-all duration-500 group-hover:border-[rgba(255,255,255,0.78)]"></div>
+                    {/* lower plaque */}
+                    <div className="absolute left-5 right-5 bottom-5 sm:left-6 sm:right-6 sm:bottom-6">
+                      <div className="border border-white/45 bg-[rgba(243,239,232,0.78)] backdrop-blur-md px-4 py-4 shadow-[0_14px_36px_rgba(23,18,14,0.10)] transition-all duration-500 group-hover:bg-[rgba(243,239,232,0.88)] group-hover:shadow-[0_18px_42px_rgba(23,18,14,0.14)]">
+                        <p
+                          className="text-[10px] uppercase tracking-[0.14em] text-[#7d7469] mb-2 group-hover:text-[#2F5D50] transition-colors duration-300"
+                          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                        >
+                          Real-Time Intelligence
+                        </p>
+                        <p
+                          className="text-[1.35rem] leading-[1.05] tracking-[-0.03em] text-[#181512]"
+                          style={{ fontFamily: "'Instrument Serif', 'Plus Jakarta Sans', serif" }}
+                        >
+                          13 panel models, 9 regions, streaming every 10ms
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Platform Guide Book Viewer */}
       <LexityBookViewer />
 
