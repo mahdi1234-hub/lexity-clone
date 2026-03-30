@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 
 const LexityBookViewer = dynamic(() => import("@/components/LexityBookViewer"), { ssr: false });
+import WelcomeModal from "@/components/WelcomeModal";
 
 export default function LandingPage() {
   const { data: session, status } = useSession();
@@ -81,6 +82,9 @@ export default function LandingPage() {
 
   return (
     <div className="relative min-h-screen">
+      {/* Welcome Modal */}
+      <WelcomeModal />
+
       {/* Hero Section with Background Image */}
       <section className="relative h-screen w-full overflow-hidden flex items-center justify-center group">
         <div className="absolute inset-0 bg-black/30 z-10 transition-colors group-hover:bg-black/20"></div>
