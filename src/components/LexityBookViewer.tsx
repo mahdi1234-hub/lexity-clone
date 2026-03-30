@@ -106,7 +106,7 @@ export default function LexityBookViewer() {
                     <div>
                       <div className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-[#C48C56]/70 mb-4" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                         <span className="inline-block h-[5px] w-[5px] rounded-full bg-[#C48C56]" />
-                        Platform Guide 2025
+                        Platform Guide 2026
                       </div>
                     </div>
 
@@ -671,7 +671,7 @@ export default function LexityBookViewer() {
 
                     <div className="text-center">
                       <p className="text-[11px] text-[#F2EFEA]/20" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                        Made With Love By Louati Mahdi &middot; 2025
+                        Made With Love By Louati Mahdi &middot; 2026
                       </p>
                     </div>
                   </div>
