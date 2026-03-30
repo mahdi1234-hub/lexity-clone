@@ -22,8 +22,6 @@ export default function SolarDashboardPage() {
           width: 100%;
           height: 100%;
           position: relative;
-          border-radius: 16px;
-          overflow: hidden;
         }
         perspective-viewer {
           position: absolute;
@@ -69,7 +67,7 @@ export default function SolarDashboardPage() {
         "JA Solar opens distribution center in Tunis",
         "Longi breaks efficiency record with new Hi-MO module",
         "Tunisia solar industry creates 12,000 new jobs in 2025",
-        "Kairouan solar farm project receives $200M investment",
+        "Kairouan solar farm project receives investment boost",
         "Review: Trina Vertex S+ outperforms in Saharan conditions",
         "Price drop alert: Canadian Solar 580W panels reduced 15%",
         "Customer review: Excellent performance from Jinko Tiger Neo",
@@ -163,185 +161,164 @@ export default function SolarDashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#F2EFEA]">
-      {/* Navigation Bar - matching lexity-clone style */}
-      <nav className="bg-[#F2EFEA] border-b border-black/5 px-6 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+      {/* Navigation - matching lexity-clone warm SaaS style */}
+      <nav className="border-b border-[#d9d1c5] bg-[#f5f1ea] px-6 py-4">
+        <div className="max-w-[1380px] mx-auto flex items-center justify-between">
           <a
             href="/"
-            className="flex items-center gap-2 text-[#2C2824] hover:text-[#C48C56] transition-colors"
+            className="flex items-center gap-2 text-[#6f675f] hover:text-[#2F5D50] transition-colors"
             style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M19 12H5M12 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <span className="text-sm font-light tracking-wide">Back to Home</span>
+            <span className="text-[13px] font-light tracking-wide">Back to Home</span>
           </a>
-          <div className="flex items-center gap-2">
-            <div className="relative inline-flex text-[#C48C56]">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="12" cy="12" r="5" />
-                <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" strokeWidth="2" />
-                <line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" strokeWidth="2" />
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" strokeWidth="2" />
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" strokeWidth="2" />
-                <line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" strokeWidth="2" />
-                <line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" strokeWidth="2" />
-              </svg>
-            </div>
-            <span
-              className="text-sm font-medium text-[#2C2824] tracking-tight"
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-            >
-              TrintoSpec
-            </span>
+          <div className="inline-flex items-center gap-3 text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-[#6f675f]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <span className="inline-block h-[6px] w-[6px] rounded-full bg-[#2F5D50]"></span>
+            TrintoSpec
           </div>
         </div>
       </nav>
 
-      {/* Hero Section - lexity-clone SaaS style */}
-      <section className="relative py-24 overflow-hidden">
-        {/* Background image with overlay - matching landing page hero style */}
-        <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1509391366360-2e959784a276?w=1920&q=80"
-            alt="Solar panels"
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-[#F2EFEA]/90"></div>
+      {/* Hero Section - Spatial Design Atelier philosophy style */}
+      <section className="relative border-b border-[#d9d1c5] bg-[#f5f1ea] overflow-hidden">
+        {/* subtle atmospheric wash */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div
+            className="absolute inset-0"
+            style={{
+              background: "radial-gradient(circle at top left, rgba(47,93,80,0.05), transparent 28%), radial-gradient(circle at bottom right, rgba(24,21,18,0.03), transparent 26%)",
+            }}
+          ></div>
         </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
-          <div className="flex items-center justify-center gap-3 mb-8">
-            <div className="w-12 h-[1px] bg-[#C48C56]/40"></div>
-            <p
-              className="text-xs uppercase tracking-[0.25em] text-[#C48C56] font-medium"
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-            >
-              Real-Time AI Dashboard
-            </p>
-            <div className="w-12 h-[1px] bg-[#C48C56]/40"></div>
-          </div>
+        <div className="relative max-w-[1380px] mx-auto grid lg:grid-cols-[0.34fr_1fr]">
+          {/* Left Rail */}
+          <div className="border-b lg:border-b-0 lg:border-r border-[#d9d1c5] px-6 sm:px-8 lg:px-10 py-12 lg:py-16">
+            <div className="lg:sticky lg:top-32">
+              <div className="inline-flex items-center gap-3 text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-[#6f675f] mb-8" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                <span className="inline-block h-[6px] w-[6px] rounded-full bg-[#2F5D50]"></span>
+                Solar Dashboard
+              </div>
 
-          <h1
-            className="text-5xl md:text-7xl tracking-tight mb-6 leading-tight text-[#2C2824] font-light"
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-          >
-            Tunisia Solar
-            <br />
-            Panel Market
-          </h1>
-
-          <div className="flex items-center justify-center gap-3 text-lg mb-8">
-            <div className="w-8 h-[1px] bg-[#2C2824]/20"></div>
-            <p
-              className="text-[#2C2824]/60 font-light"
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-            >
-              Powered by Perspective.js and Tavily AI
-            </p>
-            <div className="w-8 h-[1px] bg-[#2C2824]/20"></div>
-          </div>
-
-          <p
-            className="text-[#2C2824]/50 max-w-2xl mx-auto mb-12 leading-relaxed font-light"
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-          >
-            Explore live streaming market data with real-time pricing, regional breakdowns,
-            supplier analytics, and AI-curated news for the Tunisian solar energy sector.
-          </p>
-
-          {/* Feature pills - lexity-clone card style */}
-          <div className="flex flex-wrap items-center justify-center gap-4 mb-12">
-            <div className="card-flashlight inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/60 backdrop-blur-sm border border-black/5">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-              <span
-                className="text-sm text-[#2C2824]/70 font-light"
-                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-              >
-                Live Streaming Data
-              </span>
-            </div>
-            <div className="card-flashlight inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/60 backdrop-blur-sm border border-black/5">
-              <svg className="w-4 h-4 text-[#C48C56]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-              </svg>
-              <span
-                className="text-sm text-[#2C2824]/70 font-light"
-                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-              >
-                9 Regions Tracked
-              </span>
-            </div>
-            <div className="card-flashlight inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/60 backdrop-blur-sm border border-black/5">
-              <svg className="w-4 h-4 text-[#C48C56]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <circle cx="12" cy="12" r="5" />
-                <line x1="12" y1="1" x2="12" y2="3" />
-                <line x1="12" y1="21" x2="12" y2="23" />
-              </svg>
-              <span
-                className="text-sm text-[#2C2824]/70 font-light"
-                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-              >
-                13 Panel Models
-              </span>
+              <p className="max-w-[14rem] text-[13px] leading-7 text-[#7a7268] font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                A real-time market intelligence platform shaped by AI, streaming data, and interactive visualizations that evolve with the Tunisian solar market.
+              </p>
             </div>
           </div>
 
-          {!showDashboard && (
-            <button
-              onClick={() => setShowDashboard(true)}
-              className="inline-flex items-center gap-3 bg-[#2C2824] text-[#F2EFEA] px-8 py-4 rounded-full text-lg font-medium transition-all hover:scale-105 hover:bg-[#C48C56] cursor-pointer"
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="5" />
-                <line x1="12" y1="1" x2="12" y2="3" />
-                <line x1="12" y1="21" x2="12" y2="23" />
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                <line x1="1" y1="12" x2="3" y2="12" />
-                <line x1="21" y1="12" x2="23" y2="12" />
-              </svg>
-              Launch Real-Time Dashboard
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-          )}
+          {/* Right Content */}
+          <div className="px-6 sm:px-8 lg:px-14 py-14 sm:py-16 lg:py-20">
+            <div className="max-w-[980px]">
+              <h2
+                className="tracking-[-0.04em] leading-[1.04] text-[2.2rem] sm:text-[2.8rem] md:text-[3.4rem] lg:text-[4.2rem] text-[#181512]"
+                style={{ fontFamily: "'Instrument Serif', 'Plus Jakarta Sans', serif" }}
+              >
+                Explore the market that <span className="italic text-[#2F5D50]">powers</span> Tunisia&apos;s solar future — live data, AI insights, and real-time analytics.
+              </h2>
 
-          {showDashboard && (
-            <div className="relative inline-flex text-[#C48C56] mb-4">
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-              </svg>
-              <div className="sonar-ring"></div>
+              <div className="mt-10 lg:mt-12 grid md:grid-cols-[1fr_0.9fr] gap-10 lg:gap-14 items-start pt-8 border-t border-[#d9d1c5]">
+                {/* Copy */}
+                <div className="space-y-6">
+                  <p className="text-[15px] sm:text-[16px] leading-8 text-[#5f5851] font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    Track solar panel pricing across 9 Tunisian regions, monitor supplier activity, and access AI-curated market intelligence — all streaming in real time through an interactive Perspective.js dashboard.
+                  </p>
+
+                  <p className="text-[15px] sm:text-[16px] leading-8 text-[#5f5851] font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    Powered by Tavily AI for intelligent data enrichment and Perspective.js for high-performance streaming visualizations that update every 10 milliseconds.
+                  </p>
+
+                  {/* small markers */}
+                  <div className="pt-4 grid sm:grid-cols-3 gap-5">
+                    <div className="border-t border-[#d9d1c5] pt-4">
+                      <p className="text-[10px] uppercase tracking-[0.14em] text-[#8a8178] mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>01</p>
+                      <p className="text-[13px] leading-6 text-[#1f1b18]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Live market data</p>
+                    </div>
+                    <div className="border-t border-[#d9d1c5] pt-4">
+                      <p className="text-[10px] uppercase tracking-[0.14em] text-[#8a8178] mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>02</p>
+                      <p className="text-[13px] leading-6 text-[#1f1b18]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>AI-powered insights</p>
+                    </div>
+                    <div className="border-t border-[#d9d1c5] pt-4">
+                      <p className="text-[10px] uppercase tracking-[0.14em] text-[#8a8178] mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>03</p>
+                      <p className="text-[13px] leading-6 text-[#1f1b18]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Interactive dashboards</p>
+                    </div>
+                  </div>
+
+                  {/* CTA Button */}
+                  {!showDashboard && (
+                    <div className="pt-6">
+                      <button
+                        onClick={() => setShowDashboard(true)}
+                        className="inline-flex items-center gap-3 bg-[#2C2824] text-[#F2EFEA] px-8 py-4 rounded-full text-base font-medium transition-all hover:scale-105 hover:bg-[#2F5D50] cursor-pointer"
+                        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                      >
+                        Launch Real-Time Dashboard
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Image Block */}
+                <div className="group relative">
+                  <div className="relative overflow-hidden bg-[#ebe5dc] min-h-[420px] lg:min-h-[500px]">
+                    <img
+                      src="https://images.unsplash.com/photo-1509391366360-2e959784a276?w=900&q=80"
+                      alt="Solar panels in Tunisia"
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.025]"
+                    />
+                    {/* inner frame */}
+                    <div className="absolute inset-5 sm:inset-6 border border-[rgba(255,255,255,0.55)] transition-all duration-500 group-hover:border-[rgba(255,255,255,0.78)]"></div>
+                    {/* lower plaque */}
+                    <div className="absolute left-5 right-5 bottom-5 sm:left-6 sm:right-6 sm:bottom-6">
+                      <div className="border border-white/45 bg-[rgba(243,239,232,0.78)] backdrop-blur-md px-4 py-4 shadow-[0_14px_36px_rgba(23,18,14,0.10)] transition-all duration-500 group-hover:bg-[rgba(243,239,232,0.88)] group-hover:shadow-[0_18px_42px_rgba(23,18,14,0.14)]">
+                        <p
+                          className="text-[10px] uppercase tracking-[0.14em] text-[#7d7469] mb-2 group-hover:text-[#2F5D50] transition-colors duration-300"
+                          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                        >
+                          Real-Time Intelligence
+                        </p>
+                        <p
+                          className="text-[1.35rem] leading-[1.05] tracking-[-0.03em] text-[#181512]"
+                          style={{ fontFamily: "'Instrument Serif', 'Plus Jakarta Sans', serif" }}
+                        >
+                          13 panel models, 9 regions, streaming every 10ms
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          )}
+          </div>
         </div>
       </section>
 
       {/* Dashboard Section */}
       {showDashboard && (
-        <section className="pb-16 px-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
+        <section className="bg-[#F2EFEA] py-12 px-6">
+          <div className="max-w-[1380px] mx-auto">
+            <div className="flex items-center justify-between mb-6 px-2">
               <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <div className="w-2 h-2 rounded-full bg-green-600 animate-pulse"></div>
                 <p
-                  className="text-sm text-[#2C2824]/50 font-light tracking-wide"
+                  className="text-[13px] text-[#7a7268] font-light tracking-wide"
                   style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                 >
                   Streaming live data
                 </p>
               </div>
               <p
-                className="text-xs text-[#2C2824]/30 uppercase tracking-widest"
+                className="text-[10px] text-[#8a8178] uppercase tracking-[0.14em]"
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               >
                 Perspective.js + Tavily AI
               </p>
             </div>
-            <div className="rounded-2xl overflow-hidden border border-black/5 shadow-xl shadow-black/5 bg-white">
+            <div className="overflow-hidden border border-[#d9d1c5] bg-white shadow-[0_14px_36px_rgba(23,18,14,0.06)]">
               <div
                 ref={containerRef}
                 data-solar-dashboard="true"
