@@ -203,7 +203,7 @@ export default function SolarDashboardPage() {
               </div>
 
               <p className="max-w-[14rem] text-[13px] leading-7 text-[#7a7268] font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                A real-time market intelligence platform shaped by AI, streaming data, and interactive visualizations that evolve with the Tunisian solar market.
+                Your window into Tunisia's fastest-growing energy sector. Live pricing, regional insights, and market trends — updated every second.
               </p>
             </div>
           </div>
@@ -222,11 +222,11 @@ export default function SolarDashboardPage() {
                 {/* Copy */}
                 <div className="space-y-6">
                   <p className="text-[15px] sm:text-[16px] leading-8 text-[#5f5851] font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                    Track solar panel pricing across 9 Tunisian regions, monitor supplier activity, and access AI-curated market intelligence — all streaming in real time through an interactive Perspective.js dashboard.
+                    Stay ahead of the competition with live solar panel pricing across 9 Tunisian regions. Monitor supplier trends, compare models, and discover emerging opportunities before anyone else.
                   </p>
 
                   <p className="text-[15px] sm:text-[16px] leading-8 text-[#5f5851] font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                    Powered by Tavily AI for intelligent data enrichment and Perspective.js for high-performance streaming visualizations that update every 10 milliseconds.
+                    Get instant access to AI-curated market intelligence, customer sentiment analysis, and pricing alerts — all updating in real time so you never miss a market shift.
                   </p>
 
                   {/* small markers */}
@@ -315,7 +315,7 @@ export default function SolarDashboardPage() {
                 className="text-[10px] text-[#8a8178] uppercase tracking-[0.14em]"
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               >
-                Perspective.js + Tavily AI
+                Live
               </p>
             </div>
             <div className="overflow-hidden border border-[#d9d1c5] bg-white shadow-[0_14px_36px_rgba(23,18,14,0.06)]">
