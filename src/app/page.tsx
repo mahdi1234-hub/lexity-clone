@@ -3,6 +3,9 @@
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
+import dynamic from "next/dynamic";
+
+const LexityBookViewer = dynamic(() => import("@/components/LexityBookViewer"), { ssr: false });
 
 export default function LandingPage() {
   const { data: session, status } = useSession();
@@ -279,6 +282,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Platform Guide Book Viewer */}
+      <LexityBookViewer />
 
       {/* Footer */}
       <footer className="bg-[#2C2824] text-[#F2EFEA] py-8">

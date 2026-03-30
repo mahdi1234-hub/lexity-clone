@@ -119,6 +119,7 @@
     "react-hook-form": "^7.72.0",
     "react-map-gl": "^8.1.0",
     "react-markdown": "^10.1.0",
+    "react-pageflip": "^2.0.3",
     "rehype-highlight": "^7.0.2",
     "remark-gfm": "^4.0.1",
     "sigma": "^3.0.2",
