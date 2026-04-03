@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 
 const LexityBookViewer = dynamic(() => import("@/components/LexityBookViewer"), { ssr: false });
+const BlogSection = dynamic(() => import("@/components/BlogSection"), { ssr: false });
 import WelcomeModal from "@/components/WelcomeModal";
 
 export default function LandingPage() {
@@ -403,6 +404,9 @@ export default function LandingPage() {
 
       {/* Platform Guide Book Viewer */}
       <LexityBookViewer />
+
+      {/* Blog Section - Powered by MarbleCMS */}
+      <BlogSection />
 
       {/* Footer */}
       <footer className="bg-[#2C2824] text-[#F2EFEA] py-8">
