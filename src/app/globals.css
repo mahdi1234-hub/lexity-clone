@@ -182,3 +182,119 @@
   --color-panel: #2C2824 !important;
   --color-primary: #C48C56 !important;
 }
+
+/* Blog post content styles */
+.prose-blog {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #2C2824;
+  line-height: 1.85;
+  font-weight: 300;
+  font-size: 1.0625rem;
+}
+
+.prose-blog h1,
+.prose-blog h2,
+.prose-blog h3,
+.prose-blog h4 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  margin-top: 2.5em;
+  margin-bottom: 0.75em;
+  color: #181512;
+}
+
+.prose-blog h1 { font-size: 2.5rem; }
+.prose-blog h2 { font-size: 2rem; }
+.prose-blog h3 { font-size: 1.5rem; }
+.prose-blog h4 { font-size: 1.25rem; }
+
+.prose-blog p {
+  margin-bottom: 1.5em;
+  color: #5f5851;
+}
+
+.prose-blog a {
+  color: #C48C56;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
+}
+
+.prose-blog a:hover {
+  color: #2F5D50;
+}
+
+.prose-blog img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 2em 0;
+}
+
+.prose-blog figure {
+  margin: 2em 0;
+}
+
+.prose-blog figcaption {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #8a8178;
+  margin-top: 0.75em;
+}
+
+.prose-blog blockquote {
+  border-left: 3px solid #C48C56;
+  padding-left: 1.5em;
+  margin: 2em 0;
+  font-style: italic;
+  color: #7a7268;
+}
+
+.prose-blog ul,
+.prose-blog ol {
+  margin: 1.5em 0;
+  padding-left: 1.5em;
+  color: #5f5851;
+}
+
+.prose-blog li {
+  margin-bottom: 0.5em;
+}
+
+.prose-blog code {
+  font-family: var(--font-geist-mono), monospace;
+  background: rgba(44, 40, 36, 0.06);
+  padding: 0.15em 0.4em;
+  border-radius: 0.25rem;
+  font-size: 0.9em;
+}
+
+.prose-blog pre {
+  background: #2C2824;
+  color: #F2EFEA;
+  padding: 1.5em;
+  border-radius: 0.75rem;
+  overflow-x: auto;
+  margin: 2em 0;
+}
+
+.prose-blog pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+.prose-blog hr {
+  border: none;
+  border-top: 1px solid #d9d1c5;
+  margin: 3em 0;
+}
+
+/* Line clamp utility */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
