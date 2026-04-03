@@ -85,9 +85,7 @@ export default function BlogSection() {
               className="text-5xl md:text-6xl tracking-tighter font-light"
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             >
-              From the
-              <br />
-              Blog
+              Blogs
             </h2>
             <div className="relative inline-flex text-[#C48C56]">
               <svg className="w-8 h-8 animate-spin" viewBox="0 0 24 24" fill="none">
