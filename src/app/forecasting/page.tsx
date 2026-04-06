@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
+import { analyzeData, generateForecast, type AnalyticsResult, type ForecastResult } from "@/lib/timeseries-analytics";
 
 const ForecastChart = dynamic(() => import("@/components/forecasting/ForecastChart"), { ssr: false });
 const FrappeChartWrapper = dynamic(() => import("@/components/forecasting/FrappeChartWrapper"), { ssr: false });
@@ -21,6 +22,8 @@ export default function ForecastingPage() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedData, setUploadedData] = useState<any>(null);
+  const [analyticsResult, setAnalyticsResult] = useState<AnalyticsResult | null>(null);
+  const [forecastResult, setForecastResult] = useState<ForecastResult | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -76,6 +79,31 @@ export default function ForecastingPage() {
     async (content: string) => {
       if (!content.trim() || isLoading) return;
 
+      // Handle client-side forecast commands
+      if (uploadedData && (
+        content.toLowerCase().includes("run forecast with default") ||
+        content.toLowerCase().includes("forecast for 12 periods") ||
+        content.toLowerCase().includes("99% confidence") ||
+        content.toLowerCase().includes("forecast for")
+      )) {
+        const userMsg: ChatMessage = {
+          id: `user-${Date.now()}`,
+          role: "user",
+          content,
+          timestamp: new Date(),
+        };
+        setMessages((prev: ChatMessage[]) => [...prev, userMsg]);
+        setInput("");
+
+        let horizon = 6;
+        let confidence = 95;
+        if (content.includes("12 periods")) horizon = 12;
+        if (content.includes("99%")) confidence = 99;
+
+        setTimeout(() => runForecastAndShow(uploadedData, horizon, confidence), 300);
+        return;
+      }
+
       const userMessage: ChatMessage = {
         id: `user-${Date.now()}`,
         role: "user",
@@ -83,7 +111,7 @@ export default function ForecastingPage() {
         timestamp: new Date(),
       };
 
-      setMessages((prev) => [...prev, userMessage]);
+      setMessages((prev: ChatMessage[]) => [...prev, userMessage]);
       setInput("");
       setIsLoading(true);
 
@@ -164,24 +192,93 @@ export default function ForecastingPage() {
 
       if (parsed) {
         setUploadedData(parsed);
-        const dataStr = JSON.stringify(
-          Array.isArray(parsed) ? parsed.slice(0, 10) : parsed.data ? parsed.data.slice(0, 10) : parsed,
-          null,
-          2
-        );
-        await sendMessage(
-          `I have uploaded a ${file.name.endsWith(".json") ? "JSON" : "CSV"} file named "${file.name}". Here is a preview of the data (first 10 rows):\n\n${dataStr}\n\nPlease analyze this data and guide me through the process.`
-        );
+
+        const userMsg: ChatMessage = {
+          id: `user-${Date.now()}`,
+          role: "user",
+          content: `Uploaded file: "${file.name}" (${file.name.endsWith(".json") ? "JSON" : "CSV"} format)`,
+          timestamp: new Date(),
+        };
+        setMessages((prev: ChatMessage[]) => [...prev, userMsg]);
+
+        // Process and show analytics automatically
+        setTimeout(() => processDataAndShowAnalytics(parsed), 500);
       }
     };
     reader.readAsText(file);
   };
 
   const handleFormSubmit = async (formId: string, data: Record<string, any>) => {
+    if (formId === "forecast_config" && uploadedData) {
+      const horizon = Number(data.horizon) || 6;
+      const confidence = Number(data.confidence_level) || 95;
+      runForecastAndShow(uploadedData, horizon, confidence);
+      return;
+    }
     await sendMessage(
       `I have configured the ${formId.replace(/_/g, " ")} with these settings: ${JSON.stringify(data, null, 2)}`
     );
   };
+
+  const processDataAndShowAnalytics = useCallback((data: any) => {
+    try {
+      const analytics = analyzeData(data);
+      setAnalyticsResult(analytics);
+
+      const summaryText = analytics.summary.seriesIds.map((id) => {
+        const s = analytics.summary.statistics[id];
+        return `**${id}**: ${s.count} observations, mean=${s.mean.toFixed(1)}, range=[${s.min.toFixed(1)}, ${s.max.toFixed(1)}], trend=${s.trend}`;
+      }).join("\n");
+
+      const analyticsMessage: ChatMessage = {
+        id: `analytics-${Date.now()}`,
+        role: "assistant",
+        content: `I have analyzed your data. Here is a comprehensive overview:\n\n**Dataset Summary**\n- Total rows: ${analytics.summary.totalRows}\n- Series: ${analytics.summary.seriesCount} (${analytics.summary.seriesIds.join(", ")})\n- Date range: ${analytics.summary.dateRange.start} to ${analytics.summary.dateRange.end}\n- Detected frequency: ${analytics.summary.frequency}\n\n**Per-Series Statistics**\n${summaryText}\n\nBelow you can see the time series visualization, a comparison of series statistics, and seasonal patterns. When you are ready, configure the forecasting parameters to generate predictions.`,
+        action: { type: "client_analytics", analyticsData: analytics },
+        suggestions: [
+          "Run forecast with default settings",
+          "I want to configure forecasting parameters",
+          "Tell me more about the seasonal patterns",
+        ],
+        timestamp: new Date(),
+      };
+
+      setMessages((prev: ChatMessage[]) => [...prev, analyticsMessage]);
+    } catch (err) {
+      console.error("Analytics error:", err);
+    }
+  }, []);
+
+  const runForecastAndShow = useCallback((data: any, horizon: number = 6, confidence: number = 95) => {
+    try {
+      const forecast = generateForecast(data, horizon, confidence);
+      setForecastResult(forecast);
+
+      const firstSeries = Object.keys(forecast.forecastTable)[0];
+      const tableRows = forecast.forecastTable[firstSeries];
+
+      const tableText = tableRows.map((r) =>
+        `${r.date}: predicted=${r.predicted}, CI=[${r.lower}, ${r.upper}]`
+      ).join("\n");
+
+      const forecastMessage: ChatMessage = {
+        id: `forecast-${Date.now()}`,
+        role: "assistant",
+        content: `Here are the forecasting results for ${horizon} periods ahead with ${confidence}% confidence intervals:\n\n**Forecast Values**\n${tableText}\n\nThe chart below shows the historical data alongside the predicted values with confidence bands. The second chart compares model performance metrics. You can adjust the forecast horizon or explore different confidence levels.`,
+        action: { type: "client_forecast", forecastData: forecast },
+        suggestions: [
+          "Forecast for 12 periods instead",
+          "Show me 99% confidence intervals",
+          "What can I do to improve accuracy?",
+        ],
+        timestamp: new Date(),
+      };
+
+      setMessages((prev: ChatMessage[]) => [...prev, forecastMessage]);
+    } catch (err) {
+      console.error("Forecast error:", err);
+    }
+  }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -229,10 +326,18 @@ export default function ForecastingPage() {
                     const res = await fetch("/sample-timeseries.json");
                     const data = await res.json();
                     setUploadedData(data);
-                    const preview = JSON.stringify(data.data.slice(0, 10), null, 2);
-                    await sendMessage(
-                      `I have loaded the sample dataset: "${data.metadata.description}". It contains ${data.metadata.n_series} series (${data.metadata.features.series.join(", ")}) with ${data.metadata.n_points_per_series} monthly data points each. Here is a preview (first 10 rows):\n\n${preview}\n\nPlease analyze this data and guide me through the process.`
-                    );
+
+                    // Add user message
+                    const userMsg: ChatMessage = {
+                      id: `user-${Date.now()}`,
+                      role: "user",
+                      content: `Load and analyze the sample dataset: "${data.metadata.description}"`,
+                      timestamp: new Date(),
+                    };
+                    setMessages((prev: ChatMessage[]) => [...prev, userMsg]);
+
+                    // Process and show analytics
+                    setTimeout(() => processDataAndShowAnalytics(data), 500);
                   } catch (err) {
                     console.error("Failed to load sample data:", err);
                   }
@@ -278,9 +383,195 @@ export default function ForecastingPage() {
       case "show_analytics":
         return renderAnalytics(action.analytics);
 
+      case "client_analytics":
+        return renderClientAnalytics(action.analyticsData);
+
+      case "client_forecast":
+        return renderClientForecast(action.forecastData);
+
       default:
         return null;
     }
+  };
+
+  const renderClientAnalytics = (analytics: AnalyticsResult) => {
+    if (!analytics) return null;
+    return (
+      <div className="mt-4 space-y-4">
+        {/* Summary cards */}
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+          <h5 className="text-xs tracking-[0.12em] uppercase text-white/40 mb-3" style={{ fontFamily: "'Syncopate', sans-serif" }}>
+            Data Summary
+          </h5>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="text-center p-2">
+              <div className="text-2xl font-light text-white/80" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{analytics.summary.totalRows}</div>
+              <div className="text-[10px] text-white/30 tracking-wider uppercase mt-1">Total Rows</div>
+            </div>
+            <div className="text-center p-2">
+              <div className="text-2xl font-light text-white/80" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{analytics.summary.seriesCount}</div>
+              <div className="text-[10px] text-white/30 tracking-wider uppercase mt-1">Series</div>
+            </div>
+            <div className="text-center p-2">
+              <div className="text-2xl font-light text-white/80" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{analytics.summary.frequency}</div>
+              <div className="text-[10px] text-white/30 tracking-wider uppercase mt-1">Frequency</div>
+            </div>
+            <div className="text-center p-2">
+              <div className="text-lg font-light text-white/80" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{analytics.summary.dateRange.start}</div>
+              <div className="text-[10px] text-white/30 tracking-wider uppercase mt-1">Start Date</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Time series chart */}
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 overflow-hidden">
+          <ForecastChart
+            labels={analytics.timeSeriesChart.labels}
+            datasets={analytics.timeSeriesChart.datasets}
+            title="Time Series Overview"
+          />
+        </div>
+
+        {/* Bar chart - series comparison */}
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 overflow-hidden">
+          <FrappeChartWrapper
+            title="Series Statistics Comparison"
+            type="bar"
+            labels={analytics.barChart.labels}
+            datasets={analytics.barChart.datasets}
+            height={250}
+            colors={["#78c8b4", "#e8a87c"]}
+          />
+        </div>
+
+        {/* Seasonality chart */}
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 overflow-hidden">
+          <FrappeChartWrapper
+            title="Monthly Seasonal Patterns"
+            type="line"
+            labels={analytics.seasonalityChart.labels}
+            datasets={analytics.seasonalityChart.datasets}
+            height={250}
+            colors={["#78c8b4", "#e8a87c", "#d4a5a5"]}
+            lineOptions={{ dotSize: 5, regionFill: 1, hideDots: false }}
+          />
+        </div>
+
+        {/* Per-series stats */}
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+          <h5 className="text-xs tracking-[0.12em] uppercase text-white/40 mb-3" style={{ fontFamily: "'Syncopate', sans-serif" }}>
+            Series Statistics
+          </h5>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/[0.06]">
+                  <th className="text-left py-2 text-white/40 text-xs font-normal" style={{ fontFamily: "'Cormorant Garamond', serif" }}>Series</th>
+                  <th className="text-right py-2 text-white/40 text-xs font-normal">Count</th>
+                  <th className="text-right py-2 text-white/40 text-xs font-normal">Mean</th>
+                  <th className="text-right py-2 text-white/40 text-xs font-normal">Std Dev</th>
+                  <th className="text-right py-2 text-white/40 text-xs font-normal">Min</th>
+                  <th className="text-right py-2 text-white/40 text-xs font-normal">Max</th>
+                  <th className="text-right py-2 text-white/40 text-xs font-normal">Trend</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(analytics.summary.statistics).map(([id, s]) => (
+                  <tr key={id} className="border-b border-white/[0.03]">
+                    <td className="py-2 text-white/60" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{id}</td>
+                    <td className="text-right py-2 text-white/50 tabular-nums">{s.count}</td>
+                    <td className="text-right py-2 text-white/50 tabular-nums">{s.mean.toFixed(1)}</td>
+                    <td className="text-right py-2 text-white/50 tabular-nums">{s.std.toFixed(1)}</td>
+                    <td className="text-right py-2 text-white/50 tabular-nums">{s.min.toFixed(1)}</td>
+                    <td className="text-right py-2 text-white/50 tabular-nums">{s.max.toFixed(1)}</td>
+                    <td className="text-right py-2">
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${s.trend === "upward" ? "bg-[#78c8b4]/15 text-[#78c8b4]" : s.trend === "downward" ? "bg-[#e8a87c]/15 text-[#e8a87c]" : "bg-white/10 text-white/50"}`}>
+                        {s.trend}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Forecast config form */}
+        <InlineChatForm
+          formId="forecast_config"
+          title="Configure Forecasting"
+          fields={[
+            { name: "horizon", label: "Forecast Horizon (periods)", type: "number", default: 6, min: 1, max: 36, required: true },
+            { name: "confidence_level", label: "Confidence Level", type: "select", default: "95", options: [
+              { label: "80%", value: "80" },
+              { label: "90%", value: "90" },
+              { label: "95%", value: "95" },
+              { label: "99%", value: "99" },
+            ], required: true },
+          ]}
+          onSubmit={handleFormSubmit}
+        />
+      </div>
+    );
+  };
+
+  const renderClientForecast = (forecast: ForecastResult) => {
+    if (!forecast) return null;
+    return (
+      <div className="mt-4 space-y-4">
+        {/* Forecast chart with confidence intervals */}
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 overflow-hidden">
+          <ForecastChart
+            labels={forecast.forecastChart.labels}
+            datasets={forecast.forecastChart.datasets}
+            confidence={forecast.forecastChart.confidence}
+            title="Forecast with Confidence Intervals"
+          />
+        </div>
+
+        {/* Model comparison bar chart */}
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 overflow-hidden">
+          <FrappeChartWrapper
+            title="Model Performance Comparison"
+            type="bar"
+            labels={forecast.metricsChart.labels}
+            datasets={forecast.metricsChart.datasets}
+            height={250}
+            colors={["#78c8b4", "#e8a87c"]}
+            barOptions={{ stacked: false, spaceRatio: 0.4 }}
+          />
+        </div>
+
+        {/* Forecast table */}
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+          <h5 className="text-xs tracking-[0.12em] uppercase text-white/40 mb-3" style={{ fontFamily: "'Syncopate', sans-serif" }}>
+            Forecast Values
+          </h5>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/[0.06]">
+                  <th className="text-left py-2 text-white/40 text-xs font-normal">Date</th>
+                  <th className="text-right py-2 text-white/40 text-xs font-normal">Predicted</th>
+                  <th className="text-right py-2 text-white/40 text-xs font-normal">Lower Bound</th>
+                  <th className="text-right py-2 text-white/40 text-xs font-normal">Upper Bound</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.values(forecast.forecastTable).flat().map((row, i) => (
+                  <tr key={i} className="border-b border-white/[0.03]">
+                    <td className="py-2 text-white/60" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{row.date}</td>
+                    <td className="text-right py-2 text-[#78c8b4] tabular-nums font-medium">{row.predicted}</td>
+                    <td className="text-right py-2 text-white/40 tabular-nums">{row.lower}</td>
+                    <td className="text-right py-2 text-white/40 tabular-nums">{row.upper}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const renderChart = (action: any) => {
