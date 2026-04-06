@@ -196,30 +196,69 @@ export default function ForecastingPage() {
     switch (action.type) {
       case "request_upload":
         return (
-          <div className="mt-3 flex items-center gap-3">
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.06] border border-white/10 text-white/70 text-xs tracking-[0.12em] uppercase hover:bg-white/[0.1] hover:border-[#78c8b4]/30 hover:text-[#78c8b4] transition-all duration-300"
-              style={{ fontFamily: "'Syncopate', sans-serif" }}
-            >
-              <svg
-                className="w-4 h-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
+          <div className="mt-3 space-y-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.06] border border-white/10 text-white/70 text-xs tracking-[0.12em] uppercase hover:bg-white/[0.1] hover:border-[#78c8b4]/30 hover:text-[#78c8b4] transition-all duration-300"
+                style={{ fontFamily: "'Syncopate', sans-serif" }}
               >
-                <path
-                  d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Upload Data
-            </button>
-            <span className="text-xs text-white/30" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-              Supported: {action.formats?.join(", ") || "JSON, CSV"}
-            </span>
+                <svg
+                  className="w-4 h-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                >
+                  <path
+                    d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                Upload Data
+              </button>
+              <span className="text-xs text-white/30" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                Supported: {action.formats?.join(", ") || "JSON, CSV"}
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await fetch("/sample-timeseries.json");
+                    const data = await res.json();
+                    setUploadedData(data);
+                    const preview = JSON.stringify(data.data.slice(0, 10), null, 2);
+                    await sendMessage(
+                      `I have loaded the sample dataset: "${data.metadata.description}". It contains ${data.metadata.n_series} series (${data.metadata.features.series.join(", ")}) with ${data.metadata.n_points_per_series} monthly data points each. Here is a preview (first 10 rows):\n\n${preview}\n\nPlease analyze this data and guide me through the process.`
+                    );
+                  } catch (err) {
+                    console.error("Failed to load sample data:", err);
+                  }
+                }}
+                disabled={isLoading}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#78c8b4]/10 border border-[#78c8b4]/20 text-[#78c8b4]/80 text-xs tracking-[0.12em] uppercase hover:bg-[#78c8b4]/20 hover:border-[#78c8b4]/40 hover:text-[#78c8b4] transition-all duration-300 disabled:opacity-30"
+                style={{ fontFamily: "'Syncopate', sans-serif" }}
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Load Sample Data
+              </button>
+              <a
+                href="/sample-timeseries.json"
+                download="sample-timeseries.json"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.04] border border-white/[0.06] text-white/40 text-xs tracking-[0.12em] uppercase hover:bg-white/[0.08] hover:text-white/60 transition-all duration-300"
+                style={{ fontFamily: "'Syncopate', sans-serif" }}
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Download Sample
+              </a>
+            </div>
           </div>
         );
 
