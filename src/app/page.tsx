@@ -401,6 +401,151 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Forecasting AI Agent Section */}
+      <section className="relative border-b border-[#d9d1c5] bg-[#1a1c1a] overflow-hidden">
+        {/* Background image */}
+        <div className="absolute inset-0 pointer-events-none">
+          <img
+            src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=2674&auto=format&fit=crop"
+            alt=""
+            className="w-full h-full object-cover opacity-20"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#1a1c1a] via-transparent to-[#1a1c1a]" />
+        </div>
+
+        <div className="relative max-w-[1380px] mx-auto grid lg:grid-cols-[0.34fr_1fr]">
+          {/* Left Rail */}
+          <div className="border-b lg:border-b-0 lg:border-r border-white/[0.06] px-6 sm:px-8 lg:px-10 py-12 lg:py-16">
+            <div className="lg:sticky lg:top-32">
+              <div
+                className="inline-flex items-center gap-3 text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/40 mb-8"
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              >
+                <span className="inline-block h-[6px] w-[6px] rounded-full bg-[#78c8b4]" />
+                Forecasting Intelligence
+              </div>
+
+              <p
+                className="max-w-[14rem] text-[13px] leading-7 text-white/40 font-light"
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              >
+                Converse with an AI analyst that understands your time series data. Upload, analyze, forecast, and make data-driven decisions through natural dialogue.
+              </p>
+
+              <div className="mt-8 space-y-3">
+                <div className="flex items-center gap-2 text-[11px] text-white/30" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <div className="w-1 h-1 rounded-full bg-[#78c8b4]" />
+                  Statistical Forecasting
+                </div>
+                <div className="flex items-center gap-2 text-[11px] text-white/30" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <div className="w-1 h-1 rounded-full bg-[#e8a87c]" />
+                  ML &amp; Deep Learning Models
+                </div>
+                <div className="flex items-center gap-2 text-[11px] text-white/30" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <div className="w-1 h-1 rounded-full bg-[#d4a5a5]" />
+                  Confidence Intervals
+                </div>
+                <div className="flex items-center gap-2 text-[11px] text-white/30" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <div className="w-1 h-1 rounded-full bg-[#8cc0de]" />
+                  Interactive Visualizations
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Content */}
+          <div className="px-6 sm:px-8 lg:px-14 py-14 sm:py-16 lg:py-20">
+            <div className="max-w-[980px]">
+              <h2
+                className="tracking-[-0.04em] leading-[1.04] text-[2.2rem] sm:text-[2.8rem] md:text-[3.4rem] lg:text-[4.2rem] text-white/90"
+                style={{ fontFamily: "'Instrument Serif', 'Plus Jakarta Sans', serif" }}
+              >
+                Forecast the future with <span className="italic text-[#78c8b4]">intelligence</span> — AI-powered time series analysis at your fingertips.
+              </h2>
+
+              <div className="mt-10 lg:mt-12 grid md:grid-cols-[1fr_0.9fr] gap-10 lg:gap-14 items-start pt-8 border-t border-white/[0.06]">
+                {/* Copy */}
+                <div className="space-y-6">
+                  <p
+                    className="text-[15px] sm:text-[16px] leading-8 text-white/50 font-light"
+                    style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  >
+                    Upload your time series data and let our AI analyst guide you through a comprehensive journey of discovery — from detecting hidden patterns and seasonal trends to generating accurate forecasts with confidence intervals.
+                  </p>
+
+                  <p
+                    className="text-[15px] sm:text-[16px] leading-8 text-white/50 font-light"
+                    style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  >
+                    Support for batch and single-instance forecasting, cross-validation, model comparison, and optimization suggestions — all through a natural conversational interface.
+                  </p>
+
+                  {/* Small markers */}
+                  <div className="pt-4 grid sm:grid-cols-3 gap-5">
+                    <div className="border-t border-white/[0.06] pt-4">
+                      <p className="text-[10px] uppercase tracking-[0.14em] text-white/20 mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>01</p>
+                      <p className="text-[13px] leading-6 text-white/60" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Step-by-step analysis</p>
+                    </div>
+                    <div className="border-t border-white/[0.06] pt-4">
+                      <p className="text-[10px] uppercase tracking-[0.14em] text-white/20 mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>02</p>
+                      <p className="text-[13px] leading-6 text-white/60" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Interactive predictions</p>
+                    </div>
+                    <div className="border-t border-white/[0.06] pt-4">
+                      <p className="text-[10px] uppercase tracking-[0.14em] text-white/20 mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>03</p>
+                      <p className="text-[13px] leading-6 text-white/60" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Decision support</p>
+                    </div>
+                  </div>
+
+                  {/* CTA Button */}
+                  <div className="pt-6">
+                    <a
+                      href="/forecasting"
+                      className="inline-flex items-center gap-3 bg-white/10 text-white px-8 py-4 rounded-full text-base font-medium transition-all hover:scale-105 hover:bg-[#78c8b4]/20 hover:text-[#78c8b4] border border-white/10 cursor-pointer"
+                      style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                    >
+                      Launch Forecasting Agent
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Image Block */}
+                <div className="group relative">
+                  <div className="relative overflow-hidden bg-[#1a1c1a] min-h-[420px] lg:min-h-[500px]">
+                    <img
+                      src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&q=80"
+                      alt="Data analytics visualization"
+                      className="w-full h-full object-cover opacity-60 transition-transform duration-700 ease-out group-hover:scale-[1.025]"
+                    />
+                    {/* Inner frame */}
+                    <div className="absolute inset-5 sm:inset-6 border border-white/20 transition-all duration-500 group-hover:border-white/40" />
+                    {/* Lower plaque */}
+                    <div className="absolute left-5 right-5 bottom-5 sm:left-6 sm:right-6 sm:bottom-6">
+                      <div className="border border-white/15 bg-[rgba(26,28,26,0.85)] backdrop-blur-md px-4 py-4 shadow-[0_14px_36px_rgba(0,0,0,0.3)] transition-all duration-500 group-hover:bg-[rgba(26,28,26,0.92)]">
+                        <p
+                          className="text-[10px] uppercase tracking-[0.14em] text-[#78c8b4]/60 mb-2 group-hover:text-[#78c8b4] transition-colors duration-300"
+                          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                        >
+                          AI-Powered Forecasting
+                        </p>
+                        <p
+                          className="text-[1.35rem] leading-[1.05] tracking-[-0.03em] text-white/80"
+                          style={{ fontFamily: "'Instrument Serif', 'Plus Jakarta Sans', serif" }}
+                        >
+                          30+ models, confidence intervals, real-time conversation
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Platform Guide Book Viewer */}
       <LexityBookViewer />
 
