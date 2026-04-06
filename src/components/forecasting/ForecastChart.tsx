@@ -45,9 +45,18 @@ export default function ForecastChart({
     const w = width - margin.left - margin.right;
     const h = height - margin.top - margin.bottom;
 
-    const g = svg
+    svg
+      .attr("width", width)
+      .attr("height", height);
+
+    // Dark background for chart
+    svg.append("rect")
       .attr("width", width)
       .attr("height", height)
+      .attr("fill", "#0a0c0a")
+      .attr("rx", 8);
+
+    const g = svg
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 

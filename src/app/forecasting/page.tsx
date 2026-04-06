@@ -412,10 +412,10 @@ export default function ForecastingPage() {
         return renderAnalytics(action.analytics);
 
       case "client_analytics":
-        return renderClientAnalytics(action.analyticsData);
+        return renderClientAnalytics(action.analyticsData as AnalyticsResult);
 
       case "client_forecast":
-        return renderClientForecast(action.forecastData);
+        return renderClientForecast(action.forecastData as ForecastResult);
 
       default:
         return null;
@@ -427,7 +427,7 @@ export default function ForecastingPage() {
     return (
       <div className="mt-4 space-y-4">
         {/* Summary cards */}
-        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+        <div className="rounded-xl border border-white/[0.12] bg-[#0d0f0d]/90 p-4 shadow-lg">
           <h5 className="text-xs tracking-[0.12em] uppercase text-white/40 mb-3" style={{ fontFamily: "'Syncopate', sans-serif" }}>
             Data Summary
           </h5>
@@ -452,7 +452,7 @@ export default function ForecastingPage() {
         </div>
 
         {/* Time series chart */}
-        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 overflow-hidden">
+        <div className="rounded-xl border border-white/[0.12] bg-[#0d0f0d]/90 p-4 overflow-hidden shadow-lg">
           <ForecastChart
             labels={analytics.timeSeriesChart.labels}
             datasets={analytics.timeSeriesChart.datasets}
@@ -461,7 +461,7 @@ export default function ForecastingPage() {
         </div>
 
         {/* Bar chart - series comparison */}
-        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 overflow-hidden">
+        <div className="rounded-xl border border-white/[0.12] bg-[#0d0f0d]/90 p-4 overflow-hidden shadow-lg">
           <FrappeChartWrapper
             title="Series Statistics Comparison"
             type="bar"
@@ -473,7 +473,7 @@ export default function ForecastingPage() {
         </div>
 
         {/* Seasonality chart */}
-        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 overflow-hidden">
+        <div className="rounded-xl border border-white/[0.12] bg-[#0d0f0d]/90 p-4 overflow-hidden shadow-lg">
           <FrappeChartWrapper
             title="Monthly Seasonal Patterns"
             type="line"
@@ -486,7 +486,7 @@ export default function ForecastingPage() {
         </div>
 
         {/* Per-series stats */}
-        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+        <div className="rounded-xl border border-white/[0.12] bg-[#0d0f0d]/90 p-4 shadow-lg">
           <h5 className="text-xs tracking-[0.12em] uppercase text-white/40 mb-3" style={{ fontFamily: "'Syncopate', sans-serif" }}>
             Series Statistics
           </h5>
@@ -548,7 +548,7 @@ export default function ForecastingPage() {
     return (
       <div className="mt-4 space-y-4">
         {/* Forecast chart with confidence intervals */}
-        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 overflow-hidden">
+        <div className="rounded-xl border border-white/[0.12] bg-[#0d0f0d]/90 p-4 overflow-hidden shadow-lg">
           <ForecastChart
             labels={forecast.forecastChart.labels}
             datasets={forecast.forecastChart.datasets}
@@ -558,7 +558,7 @@ export default function ForecastingPage() {
         </div>
 
         {/* Model comparison bar chart */}
-        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 overflow-hidden">
+        <div className="rounded-xl border border-white/[0.12] bg-[#0d0f0d]/90 p-4 overflow-hidden shadow-lg">
           <FrappeChartWrapper
             title="Model Performance Comparison"
             type="bar"
@@ -571,7 +571,7 @@ export default function ForecastingPage() {
         </div>
 
         {/* Forecast table */}
-        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+        <div className="rounded-xl border border-white/[0.12] bg-[#0d0f0d]/90 p-4 shadow-lg">
           <h5 className="text-xs tracking-[0.12em] uppercase text-white/40 mb-3" style={{ fontFamily: "'Syncopate', sans-serif" }}>
             Forecast Values
           </h5>
@@ -614,7 +614,7 @@ export default function ForecastingPage() {
       chart_type === "decomposition"
     ) {
       return (
-        <div className="mt-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 overflow-hidden">
+        <div className="mt-3 rounded-xl border border-white/[0.12] bg-[#0d0f0d]/90 p-4 overflow-hidden shadow-lg">
           <ForecastChart
             labels={data.labels || []}
             datasets={
@@ -639,7 +639,7 @@ export default function ForecastingPage() {
 
     // For bar, line, heatmap, pie - use Frappe Charts
     return (
-      <div className="mt-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 overflow-hidden">
+      <div className="mt-3 rounded-xl border border-white/[0.12] bg-[#0d0f0d]/90 p-4 overflow-hidden shadow-lg">
         <FrappeChartWrapper
           title={data.title || chart_type}
           type={chart_type === "heatmap" ? "heatmap" : chart_type === "bar" ? "bar" : "line"}
@@ -663,7 +663,7 @@ export default function ForecastingPage() {
     return (
       <div className="mt-3 space-y-3">
         {analytics.summary && (
-          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+          <div className="rounded-xl border border-white/[0.12] bg-[#0d0f0d]/90 p-4 shadow-lg">
             <h5
               className="text-xs tracking-[0.12em] uppercase text-white/40 mb-3"
               style={{ fontFamily: "'Syncopate', sans-serif" }}
@@ -689,7 +689,7 @@ export default function ForecastingPage() {
         )}
 
         {analytics.stationarity && (
-          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+          <div className="rounded-xl border border-white/[0.12] bg-[#0d0f0d]/90 p-4 shadow-lg">
             <h5
               className="text-xs tracking-[0.12em] uppercase text-white/40 mb-3"
               style={{ fontFamily: "'Syncopate', sans-serif" }}
@@ -718,7 +718,7 @@ export default function ForecastingPage() {
         )}
 
         {analytics.metrics && (
-          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+          <div className="rounded-xl border border-white/[0.12] bg-[#0d0f0d]/90 p-4 shadow-lg">
             <h5
               className="text-xs tracking-[0.12em] uppercase text-white/40 mb-3"
               style={{ fontFamily: "'Syncopate', sans-serif" }}
