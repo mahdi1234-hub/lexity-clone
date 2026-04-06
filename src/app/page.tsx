@@ -405,14 +405,27 @@ export default function LandingPage() {
       <LexityBookViewer />
 
       {/* Footer */}
-      <footer className="bg-[#2C2824] text-[#F2EFEA] py-8">
-        <div className="max-w-6xl mx-auto px-6 text-center">
-          <p
-            className="text-sm opacity-70 font-light tracking-wide"
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-          >
-            Made With Love By Louati Mahdi
-          </p>
+      <footer className="bg-[#2C2824] text-[#F2EFEA] py-12">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
+            <p
+              className="text-sm opacity-70 font-light tracking-wide"
+              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            >
+              Made With Love By Louati Mahdi
+            </p>
+            <a
+              href="/help-center"
+              className="inline-flex items-center gap-2 text-sm font-medium text-[#C48C56] hover:text-[#F2EFEA] transition-colors"
+              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Help Center
+            </a>
+          </div>
         </div>
       </footer>
     </div>
