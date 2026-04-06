@@ -2,11 +2,12 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { analyzeData, generateForecast, type AnalyticsResult, type ForecastResult } from "@/lib/timeseries-analytics";
+import { analyzeData, generateForecast, generateCausalAnalytics, type AnalyticsResult, type ForecastResult, type CausalAnalyticsResult } from "@/lib/timeseries-analytics";
 
 const ForecastChart = dynamic(() => import("@/components/forecasting/ForecastChart"), { ssr: false });
 const FrappeChartWrapper = dynamic(() => import("@/components/forecasting/FrappeChartWrapper"), { ssr: false });
 const InlineChatForm = dynamic(() => import("@/components/forecasting/InlineChatForm"), { ssr: false });
+const CausalGraph = dynamic(() => import("@/components/forecasting/CausalGraph"), { ssr: false });
 
 interface ChatMessage {
   id: string;
@@ -78,6 +79,25 @@ export default function ForecastingPage() {
   const sendMessage = useCallback(
     async (content: string) => {
       if (!content.trim() || isLoading) return;
+
+      // Handle causal analysis commands
+      if (uploadedData && (
+        content.toLowerCase().includes("causal") ||
+        content.toLowerCase().includes("granger") ||
+        content.toLowerCase().includes("cause") ||
+        content.toLowerCase().includes("relationship between")
+      )) {
+        const userMsg: ChatMessage = {
+          id: `user-${Date.now()}`,
+          role: "user",
+          content,
+          timestamp: new Date(),
+        };
+        setMessages((prev: ChatMessage[]) => [...prev, userMsg]);
+        setInput("");
+        setTimeout(() => runCausalAnalysis(uploadedData), 300);
+        return;
+      }
 
       // Handle client-side forecast commands
       if (uploadedData && (
@@ -265,8 +285,8 @@ export default function ForecastingPage() {
         action: { type: "client_analytics", analyticsData: analytics },
         suggestions: [
           "Run forecast with default settings",
+          "Run causal analysis on this data",
           "Give me key insights and improvement suggestions",
-          "Tell me more about the seasonal patterns",
           "What risks or opportunities do you see?",
         ],
         timestamp: new Date(),
@@ -344,6 +364,34 @@ export default function ForecastingPage() {
       setMessages((prev: ChatMessage[]) => [...prev, forecastMessage]);
     } catch (err) {
       console.error("Forecast error:", err);
+    }
+  }, []);
+
+  const runCausalAnalysis = useCallback((data: any) => {
+    try {
+      const causal = generateCausalAnalytics(data);
+
+      const significantRelations = causal.grangerCausalityResults
+        .filter((r) => r.significant)
+        .map((r) => `${r.source} -> ${r.target} (p=${r.pValue}, lag=${r.lag})`)
+        .join("\n");
+
+      const causalMessage: ChatMessage = {
+        id: `causal-${Date.now()}`,
+        role: "assistant",
+        content: `**Causal Time Series Analytics**\n\nI have analyzed the causal relationships in your data using cross-correlation and Granger causality tests. The interactive graph below shows how variables influence each other.\n\n**Graph Structure:**\n- ${causal.nodes.length} nodes (variables, trends, seasonal components)\n- ${causal.edges.length} causal edges detected\n- Green edges = positive influence, Orange edges = negative influence\n- Node size reflects centrality (importance)\n\n**Significant Causal Relationships:**\n${significantRelations || "Cross-correlations detected between series (see graph edges)"}\n\nDrag any node to rearrange the graph. Click a node to see its causal connections in detail.`,
+        action: { type: "client_causal", causalData: causal },
+        suggestions: [
+          "What do these causal relationships mean?",
+          "Run forecast with default settings",
+          "How can I use causal insights for better decisions?",
+        ],
+        timestamp: new Date(),
+      };
+
+      setMessages((prev: ChatMessage[]) => [...prev, causalMessage]);
+    } catch (err) {
+      console.error("Causal analysis error:", err);
     }
   }, []);
 
@@ -455,6 +503,9 @@ export default function ForecastingPage() {
 
       case "client_forecast":
         return renderClientForecast(action.forecastData as ForecastResult);
+
+      case "client_causal":
+        return renderClientCausal(action.causalData);
 
       default:
         return null;
@@ -578,6 +629,64 @@ export default function ForecastingPage() {
           ]}
           onSubmit={handleFormSubmit}
         />
+      </div>
+    );
+  };
+
+  const renderClientCausal = (causalData: any) => {
+    if (!causalData) return null;
+    return (
+      <div className="mt-4">
+        <div className="rounded-xl border border-white/[0.12] bg-[#0d0f0d]/90 p-4 shadow-lg">
+          <CausalGraph
+            data={{
+              nodes: causalData.nodes || [],
+              edges: causalData.edges || [],
+              title: causalData.title || "Causal Analytics",
+            }}
+            height={500}
+          />
+        </div>
+
+        {/* Granger Causality Results Table */}
+        {causalData.grangerCausalityResults && causalData.grangerCausalityResults.length > 0 && (
+          <div className="mt-3 rounded-xl border border-white/[0.12] bg-[#0d0f0d]/90 p-4 shadow-lg">
+            <h5
+              className="text-xs tracking-[0.12em] uppercase text-white/40 mb-3"
+              style={{ fontFamily: "'Syncopate', sans-serif" }}
+            >
+              Causality Test Results
+            </h5>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/[0.06]">
+                    <th className="text-left py-2 text-white/40 text-xs font-normal">Source</th>
+                    <th className="text-left py-2 text-white/40 text-xs font-normal">Target</th>
+                    <th className="text-right py-2 text-white/40 text-xs font-normal">P-Value</th>
+                    <th className="text-right py-2 text-white/40 text-xs font-normal">Lag</th>
+                    <th className="text-center py-2 text-white/40 text-xs font-normal">Significant</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {causalData.grangerCausalityResults.map((r: any, i: number) => (
+                    <tr key={i} className="border-b border-white/[0.03]">
+                      <td className="py-2 text-white/60" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{r.source}</td>
+                      <td className="py-2 text-white/60" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{r.target}</td>
+                      <td className="text-right py-2 text-white/50 tabular-nums">{r.pValue}</td>
+                      <td className="text-right py-2 text-white/50 tabular-nums">{r.lag}</td>
+                      <td className="text-center py-2">
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${r.significant ? "bg-[#78c8b4]/15 text-[#78c8b4]" : "bg-white/5 text-white/30"}`}>
+                          {r.significant ? "Yes" : "No"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     );
   };

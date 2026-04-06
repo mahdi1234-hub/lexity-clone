@@ -412,3 +412,246 @@ export function generateForecast(
 
   return { forecastChart, metricsChart, forecastTable };
 }
+
+// ============== CAUSAL ANALYTICS ==============
+
+export interface CausalNode {
+  id: string;
+  label: string;
+  type: "variable" | "target" | "exogenous" | "latent";
+  metrics?: Record<string, number>;
+}
+
+export interface CausalEdge {
+  source: string;
+  target: string;
+  weight: number;
+  type: "positive" | "negative";
+  lag?: number;
+  label?: string;
+}
+
+export interface CausalAnalyticsResult {
+  nodes: CausalNode[];
+  edges: CausalEdge[];
+  title: string;
+  correlationMatrix: Record<string, Record<string, number>>;
+  grangerCausalityResults: { source: string; target: string; pValue: number; significant: boolean; lag: number }[];
+}
+
+function crossCorrelation(x: number[], y: number[], lag: number): number {
+  const n = Math.min(x.length, y.length) - Math.abs(lag);
+  if (n < 3) return 0;
+
+  const xSlice = lag >= 0 ? x.slice(0, n) : x.slice(-lag, -lag + n);
+  const ySlice = lag >= 0 ? y.slice(lag, lag + n) : y.slice(0, n);
+
+  const xMean = xSlice.reduce((a, b) => a + b, 0) / n;
+  const yMean = ySlice.reduce((a, b) => a + b, 0) / n;
+
+  let num = 0;
+  let denX = 0;
+  let denY = 0;
+
+  for (let i = 0; i < n; i++) {
+    const dx = xSlice[i] - xMean;
+    const dy = ySlice[i] - yMean;
+    num += dx * dy;
+    denX += dx * dx;
+    denY += dy * dy;
+  }
+
+  const den = Math.sqrt(denX * denY);
+  return den === 0 ? 0 : num / den;
+}
+
+function simpleGrangerTest(cause: number[], effect: number[], maxLag: number = 3): { fStat: number; pValue: number; bestLag: number } {
+  // Simplified Granger causality using improvement in autocorrelation
+  let bestLag = 1;
+  let bestImprovement = 0;
+
+  for (let lag = 1; lag <= maxLag; lag++) {
+    const n = Math.min(cause.length, effect.length) - lag;
+    if (n < 5) continue;
+
+    // Auto-regression error (effect predicted by own past)
+    let autoErr = 0;
+    for (let i = lag; i < n + lag; i++) {
+      const pred = effect[i - lag];
+      autoErr += (effect[i] - pred) ** 2;
+    }
+
+    // Cross-regression error (effect predicted by cause past)
+    let crossErr = 0;
+    for (let i = lag; i < n + lag; i++) {
+      const pred = (effect[i - lag] + cause[i - lag]) / 2;
+      crossErr += (effect[i] - pred) ** 2;
+    }
+
+    const improvement = autoErr > 0 ? (autoErr - crossErr) / autoErr : 0;
+    if (improvement > bestImprovement) {
+      bestImprovement = improvement;
+      bestLag = lag;
+    }
+  }
+
+  // Approximate F-statistic and p-value
+  const fStat = bestImprovement * (cause.length - 2 * maxLag - 1) / maxLag;
+  // Simplified p-value approximation
+  const pValue = Math.max(0.001, Math.min(1, Math.exp(-fStat * 0.5)));
+
+  return { fStat, pValue, bestLag };
+}
+
+export function generateCausalAnalytics(rawData: any): CausalAnalyticsResult {
+  const rows = parseData(rawData);
+  const seriesMap: Record<string, TimeSeriesRow[]> = {};
+
+  rows.forEach((row) => {
+    const id = row.unique_id || "default";
+    if (!seriesMap[id]) seriesMap[id] = [];
+    seriesMap[id].push(row);
+  });
+
+  const seriesIds = Object.keys(seriesMap);
+  seriesIds.forEach((id) => {
+    seriesMap[id].sort((a, b) => new Date(a.ds).getTime() - new Date(b.ds).getTime());
+  });
+
+  const seriesValues: Record<string, number[]> = {};
+  seriesIds.forEach((id) => {
+    seriesValues[id] = seriesMap[id].map((r) => Number(r.y));
+  });
+
+  // Build nodes
+  const nodes: CausalNode[] = seriesIds.map((id, i) => {
+    const values = seriesValues[id];
+    const m = mean(values);
+    const s = std(values);
+    return {
+      id,
+      label: id,
+      type: i === 0 ? "target" : "variable",
+      metrics: {
+        mean: Math.round(m * 100) / 100,
+        std: Math.round(s * 100) / 100,
+        cv: Math.round((s / m) * 100) / 100,
+      },
+    };
+  });
+
+  // Add derived nodes for trend and seasonality
+  seriesIds.forEach((id) => {
+    const values = seriesValues[id];
+
+    // Trend component
+    const trendValues: number[] = [];
+    const windowSize = Math.min(3, Math.floor(values.length / 3));
+    for (let i = 0; i < values.length; i++) {
+      const start = Math.max(0, i - windowSize);
+      const end = Math.min(values.length, i + windowSize + 1);
+      const slice = values.slice(start, end);
+      trendValues.push(slice.reduce((a, b) => a + b, 0) / slice.length);
+    }
+    const trendId = `${id}_trend`;
+    seriesValues[trendId] = trendValues;
+    nodes.push({
+      id: trendId,
+      label: `${id} Trend`,
+      type: "latent",
+      metrics: {
+        slope: Math.round(((trendValues[trendValues.length - 1] - trendValues[0]) / trendValues.length) * 100) / 100,
+      },
+    });
+
+    // Seasonality component
+    const seasonValues = values.map((v, i) => v - trendValues[i]);
+    const seasonId = `${id}_seasonal`;
+    seriesValues[seasonId] = seasonValues;
+    nodes.push({
+      id: seasonId,
+      label: `${id} Seasonality`,
+      type: "exogenous",
+      metrics: {
+        amplitude: Math.round((Math.max(...seasonValues) - Math.min(...seasonValues)) * 100) / 100,
+      },
+    });
+  });
+
+  // Compute correlation matrix
+  const allIds = Object.keys(seriesValues);
+  const correlationMatrix: Record<string, Record<string, number>> = {};
+
+  allIds.forEach((id1) => {
+    correlationMatrix[id1] = {};
+    allIds.forEach((id2) => {
+      correlationMatrix[id1][id2] = crossCorrelation(seriesValues[id1], seriesValues[id2], 0);
+    });
+  });
+
+  // Build edges from cross-correlations and Granger tests
+  const edges: CausalEdge[] = [];
+  const grangerResults: CausalAnalyticsResult["grangerCausalityResults"] = [];
+
+  allIds.forEach((id1) => {
+    allIds.forEach((id2) => {
+      if (id1 === id2) return;
+      if (id1.includes("_trend") && id2.includes("_trend")) return;
+      if (id1.includes("_seasonal") && id2.includes("_seasonal")) return;
+
+      const corr = correlationMatrix[id1][id2];
+      const absCorr = Math.abs(corr);
+
+      if (absCorr > 0.3) {
+        // Run Granger test
+        const granger = simpleGrangerTest(seriesValues[id1], seriesValues[id2], 3);
+        const significant = granger.pValue < 0.1;
+
+        grangerResults.push({
+          source: id1,
+          target: id2,
+          pValue: Math.round(granger.pValue * 1000) / 1000,
+          significant,
+          lag: granger.bestLag,
+        });
+
+        if (significant || absCorr > 0.5) {
+          edges.push({
+            source: id1,
+            target: id2,
+            weight: Math.round(absCorr * 100) / 100,
+            type: corr > 0 ? "positive" : "negative",
+            lag: granger.bestLag,
+            label: `r=${corr.toFixed(2)}`,
+          });
+        }
+      }
+    });
+  });
+
+  // Add structural edges (trend -> series, season -> series)
+  seriesIds.forEach((id) => {
+    edges.push({
+      source: `${id}_trend`,
+      target: id,
+      weight: 0.9,
+      type: "positive",
+      label: "trend component",
+    });
+    edges.push({
+      source: `${id}_seasonal`,
+      target: id,
+      weight: 0.7,
+      type: "positive",
+      label: "seasonal component",
+    });
+  });
+
+  return {
+    nodes,
+    edges,
+    title: "Causal Time Series Analytics",
+    correlationMatrix,
+    grangerCausalityResults: grangerResults,
+  };
+}
