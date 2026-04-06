@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
         Authorization: `Bearer ${CEREBRAS_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "llama-4-scout-17b-16e-instruct",
+        model: "llama3.1-8b",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           ...messages,
