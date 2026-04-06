@@ -265,8 +265,9 @@ export default function ForecastingPage() {
         action: { type: "client_analytics", analyticsData: analytics },
         suggestions: [
           "Run forecast with default settings",
-          "I want to configure forecasting parameters",
+          "Give me key insights and improvement suggestions",
           "Tell me more about the seasonal patterns",
+          "What risks or opportunities do you see?",
         ],
         timestamp: new Date(),
       };
