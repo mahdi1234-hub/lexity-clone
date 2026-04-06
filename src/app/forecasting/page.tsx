@@ -104,6 +104,34 @@ export default function ForecastingPage() {
         return;
       }
 
+      // Detect JSON data pasted in the text input
+      const trimmed = content.trim();
+      let detectedData: any = null;
+      if (
+        (trimmed.startsWith("[") && trimmed.endsWith("]")) ||
+        (trimmed.startsWith("{") && trimmed.endsWith("}"))
+      ) {
+        try {
+          detectedData = JSON.parse(trimmed);
+        } catch {
+          // Not valid JSON, send as regular message
+        }
+      }
+
+      if (detectedData) {
+        const userMsg: ChatMessage = {
+          id: `user-${Date.now()}`,
+          role: "user",
+          content: `Pasted JSON data (${trimmed.length} characters)`,
+          timestamp: new Date(),
+        };
+        setMessages((prev: ChatMessage[]) => [...prev, userMsg]);
+        setInput("");
+        setUploadedData(detectedData);
+        setTimeout(() => processDataAndShowAnalytics(detectedData), 500);
+        return;
+      }
+
       const userMessage: ChatMessage = {
         id: `user-${Date.now()}`,
         role: "user",
