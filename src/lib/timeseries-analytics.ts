@@ -55,9 +55,97 @@ export interface ForecastResult {
 }
 
 function parseData(raw: any): TimeSeriesRow[] {
-  if (Array.isArray(raw)) return raw;
-  if (raw.data && Array.isArray(raw.data)) return raw.data;
-  return [];
+  let rows: any[] = [];
+
+  if (Array.isArray(raw)) {
+    rows = raw;
+  } else if (raw.data && Array.isArray(raw.data)) {
+    rows = raw.data;
+  } else if (typeof raw === "object") {
+    // Try to find any array property
+    for (const key of Object.keys(raw)) {
+      if (Array.isArray(raw[key]) && raw[key].length > 0 && typeof raw[key][0] === "object") {
+        rows = raw[key];
+        break;
+      }
+    }
+  }
+
+  if (rows.length === 0) return [];
+
+  // Auto-detect columns if they don't match expected format
+  const firstRow = rows[0];
+  const keys = Object.keys(firstRow);
+
+  // Find date column
+  let dsCol = "ds";
+  if (!firstRow.ds) {
+    const dateCol = keys.find((k) => {
+      const val = String(firstRow[k]);
+      return (
+        k.toLowerCase().includes("date") ||
+        k.toLowerCase().includes("time") ||
+        k.toLowerCase() === "ds" ||
+        k.toLowerCase() === "timestamp" ||
+        k.toLowerCase() === "period" ||
+        /^\d{4}[-/]\d{1,2}/.test(val)
+      );
+    });
+    if (dateCol) dsCol = dateCol;
+  }
+
+  // Find numeric/value column
+  let yCol = "y";
+  if (!firstRow.y && firstRow.y !== 0) {
+    const numCol = keys.find((k) => {
+      if (k === dsCol) return false;
+      const val = firstRow[k];
+      return (
+        k.toLowerCase().includes("value") ||
+        k.toLowerCase().includes("amount") ||
+        k.toLowerCase().includes("price") ||
+        k.toLowerCase().includes("sales") ||
+        k.toLowerCase().includes("count") ||
+        k.toLowerCase().includes("total") ||
+        k.toLowerCase().includes("revenue") ||
+        k.toLowerCase() === "y" ||
+        k.toLowerCase() === "target" ||
+        (typeof val === "number" && !k.toLowerCase().includes("id"))
+      );
+    });
+    if (numCol) yCol = numCol;
+    else {
+      // Fall back to first numeric column that isn't the date
+      const fallback = keys.find((k) => k !== dsCol && typeof firstRow[k] === "number");
+      if (fallback) yCol = fallback;
+    }
+  }
+
+  // Find ID column
+  let idCol = "unique_id";
+  if (!firstRow.unique_id) {
+    const catCol = keys.find((k) => {
+      if (k === dsCol || k === yCol) return false;
+      return (
+        k.toLowerCase().includes("id") ||
+        k.toLowerCase().includes("series") ||
+        k.toLowerCase().includes("category") ||
+        k.toLowerCase().includes("group") ||
+        k.toLowerCase().includes("name") ||
+        k.toLowerCase().includes("region") ||
+        k.toLowerCase().includes("type") ||
+        typeof firstRow[k] === "string"
+      );
+    });
+    if (catCol) idCol = catCol;
+  }
+
+  // Map rows to standard format
+  return rows.map((row) => ({
+    unique_id: String(row[idCol] || "series_1"),
+    ds: String(row[dsCol] || ""),
+    y: Number(row[yCol]) || 0,
+  })).filter((r) => r.ds && !isNaN(new Date(r.ds).getTime()));
 }
 
 function detectFrequency(dates: Date[]): string {
