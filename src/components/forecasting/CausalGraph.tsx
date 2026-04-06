@@ -3,7 +3,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import Graph from "graphology";
 import Sigma from "sigma";
-import { EdgeCurveProgram } from "@sigma/edge-curve";
 import forceLayout from "graphology-layout-force";
 import louvain from "graphology-communities-louvain";
 import { degreeCentrality } from "graphology-metrics/centrality/degree";
@@ -97,7 +96,7 @@ export default function CausalGraph({ data, height = 500 }: CausalGraphProps) {
             weight: Math.abs(edge.weight),
             size: Math.max(1, Math.abs(edge.weight) * 3),
             color: isNeg ? "rgba(232,168,124,0.5)" : "rgba(120,200,180,0.5)",
-            type: "curvedArrow",
+            type: "arrow",
             label: edge.label || (edge.lag ? `lag=${edge.lag}` : ""),
             edgeType: edge.type || "positive",
             lag: edge.lag || 0,
@@ -175,10 +174,7 @@ export default function CausalGraph({ data, height = 500 }: CausalGraphProps) {
     // Create Sigma instance
     const sigma = new Sigma(graph, containerRef.current, {
       renderEdgeLabels: true,
-      edgeProgramClasses: {
-        curvedArrow: EdgeCurveProgram,
-      },
-      defaultEdgeType: "curvedArrow",
+      defaultEdgeType: "arrow",
       labelFont: "'Cormorant Garamond', serif",
       labelSize: 13,
       labelWeight: "400",
