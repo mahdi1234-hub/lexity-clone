@@ -273,6 +273,44 @@ export default function ForecastingPage() {
       };
 
       setMessages((prev: ChatMessage[]) => [...prev, analyticsMessage]);
+
+      // Automatically request AI insights based on the analytics
+      setTimeout(async () => {
+        try {
+          const insightPrompt = `Here is analyzed time series data summary. Please provide key findings, key insights, and actionable improvement suggestions:\n\n` +
+            `- Total rows: ${analytics.summary.totalRows}\n` +
+            `- Series: ${analytics.summary.seriesCount} (${analytics.summary.seriesIds.join(", ")})\n` +
+            `- Date range: ${analytics.summary.dateRange.start} to ${analytics.summary.dateRange.end}\n` +
+            `- Frequency: ${analytics.summary.frequency}\n` +
+            analytics.summary.seriesIds.map((id) => {
+              const s = analytics.summary.statistics[id];
+              return `- ${id}: mean=${s.mean.toFixed(1)}, std=${s.std.toFixed(1)}, min=${s.min.toFixed(1)}, max=${s.max.toFixed(1)}, trend=${s.trend}`;
+            }).join("\n") +
+            `\n\nProvide detailed key findings, domain-specific insights, and specific actionable improvements.`;
+
+          const res = await fetch("/api/forecasting-agent", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              messages: [{ role: "user", content: insightPrompt }],
+            }),
+          });
+
+          if (res.ok) {
+            const aiData = await res.json();
+            const insightMessage: ChatMessage = {
+              id: `insight-${Date.now()}`,
+              role: "assistant",
+              content: aiData.message || "Analysis complete.",
+              suggestions: aiData.suggestions || [],
+              timestamp: new Date(),
+            };
+            setMessages((prev: ChatMessage[]) => [...prev, insightMessage]);
+          }
+        } catch (err) {
+          console.error("Insight request error:", err);
+        }
+      }, 1000);
     } catch (err) {
       console.error("Analytics error:", err);
     }
