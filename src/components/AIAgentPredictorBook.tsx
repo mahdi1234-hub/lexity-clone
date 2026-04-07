@@ -131,11 +131,12 @@ const PRIORITY_OPTIONS = [
 ];
 
 /* ------------------------------------------------------------------ */
-/*  AI Analysis Engine                                                */
+/*  AI Analysis Engine (comprehensive)                                */
 /* ------------------------------------------------------------------ */
 function generateAnalysis(form: FormState) {
-  const { decisionCategory, urgency, riskTolerance, painPoints, priorities, externalFactors } = form;
+  const { decisionCategory, urgency, riskTolerance, painPoints, priorities, externalFactors, budget, timeframe, reversibility } = form;
 
+  /* --- Causal Factors --- */
   const causalFactors: string[] = [];
   if (painPoints.includes("High costs") && priorities.includes("Cost reduction"))
     causalFactors.push("Cost pressure is both a root cause and a priority -- address this first to unlock downstream benefits.");
@@ -149,6 +150,16 @@ function generateAnalysis(form: FormState) {
     causalFactors.push("Technical debt compounds over time -- addressing it now reduces future cost of change significantly.");
   if (priorities.includes("Customer satisfaction") && painPoints.includes("Poor user experience"))
     causalFactors.push("User experience gaps are directly eroding satisfaction -- this is a high-leverage improvement area.");
+  if (externalFactors.includes("Technology shifts") && painPoints.includes("Technical debt"))
+    causalFactors.push("Technology shifts combined with existing technical debt create compounding risk -- modernization is urgent.");
+  if (externalFactors.includes("Competitor actions") && priorities.includes("Revenue growth"))
+    causalFactors.push("Competitor movements directly threaten revenue growth -- defensive and offensive strategies both needed.");
+  if (painPoints.includes("Team capacity") && priorities.includes("Scalability"))
+    causalFactors.push("Team capacity constraints are the primary bottleneck to scalability -- invest in people or automation.");
+  if (externalFactors.includes("Customer demand") && priorities.includes("Speed to market"))
+    causalFactors.push("Strong customer demand signals a window of opportunity -- speed to market will determine capture rate.");
+  if (painPoints.includes("Market competition") && externalFactors.includes("Economic conditions"))
+    causalFactors.push("Competitive pressure under shifting economic conditions requires agile positioning -- avoid overcommitting.");
 
   if (causalFactors.length === 0) {
     causalFactors.push(
@@ -157,6 +168,7 @@ function generateAnalysis(form: FormState) {
     );
   }
 
+  /* --- Risk Assessment --- */
   let riskLevel = "Moderate";
   let riskNote = "";
   if (riskTolerance === "aggressive" && urgency === "critical") {
@@ -170,7 +182,11 @@ function generateAnalysis(form: FormState) {
   } else {
     riskNote = "Evaluate the reversibility of each option -- favor decisions that can be adjusted if early signals are negative.";
   }
+  if (reversibility === "irreversible") {
+    riskNote += " This is a one-way door decision -- extra due diligence is warranted regardless of risk appetite.";
+  }
 
+  /* --- Option Scoring --- */
   const options = [
     { label: "Option A", value: form.optionA },
     { label: "Option B", value: form.optionB },
@@ -185,10 +201,20 @@ function generateAnalysis(form: FormState) {
     if (words.includes("risk") || words.includes("uncertain")) score -= 10;
     if (words.includes("partner") || words.includes("collaborate")) score += 8;
     if (words.includes("build") || words.includes("develop") || words.includes("create")) score += 12;
-    score = Math.min(95, Math.max(20, score));
+    if (words.includes("scale") || words.includes("grow") || words.includes("expand")) score += 10;
+    if (words.includes("hire") || words.includes("team") || words.includes("people")) score += 6;
+    if (words.includes("outsource") || words.includes("vendor")) score += 4;
+    if (words.includes("wait") || words.includes("delay") || words.includes("postpone")) score -= 8;
+    if (words.includes("invest") || words.includes("fund")) score += 7;
+    // Align with priorities
+    priorities.forEach((p) => {
+      if (words.includes(p.toLowerCase().split(" ")[0])) score += 5;
+    });
+    score = Math.min(95, Math.max(15, score));
     return { ...o, score };
   });
 
+  /* --- Category Advice --- */
   let categoryAdvice = "";
   switch (decisionCategory) {
     case "strategic":
@@ -210,7 +236,74 @@ function generateAnalysis(form: FormState) {
       categoryAdvice = "Consider the second-order effects of this decision -- how will it change your available options 6-12 months from now?";
   }
 
-  const topOption = optionInsights.sort((a, b) => b.score - a.score)[0];
+  const topOption = [...optionInsights].sort((a, b) => b.score - a.score)[0];
+
+  /* --- Suggestions (context-aware) --- */
+  const suggestions: string[] = [];
+  if (painPoints.length >= 3)
+    suggestions.push("With multiple pain points, prioritize by impact. Address the 1-2 that cause the most downstream problems first.");
+  if (urgency === "critical" && riskTolerance === "conservative")
+    suggestions.push("Your urgency conflicts with your risk tolerance. Consider a phased approach: take a safe first step now, then evaluate.");
+  if (timeframe === "long" && urgency === "critical")
+    suggestions.push("Long-term timeframe with critical urgency is contradictory. Clarify whether you need immediate action or long-term results.");
+  if (budget === "minimal" && priorities.includes("Innovation"))
+    suggestions.push("Innovation on a minimal budget favors lean experimentation. Run small pilots before committing to full implementation.");
+  if (budget === "major" && riskTolerance === "aggressive")
+    suggestions.push("Large budget with aggressive risk tolerance enables bold moves. Consider parallel bets across multiple options.");
+  if (externalFactors.includes("Regulatory changes") && timeframe === "immediate")
+    suggestions.push("Regulatory changes on an immediate timeline require legal review. Ensure compliance is validated before execution.");
+  if (priorities.includes("Team morale") && painPoints.includes("Team capacity"))
+    suggestions.push("Team morale and capacity are linked. Overworking to hit targets will erode morale -- balance output with sustainability.");
+  if (form.dealBreakers)
+    suggestions.push(`Your stated deal breakers ("${form.dealBreakers.slice(0, 60)}...") should be validated against each option before proceeding.`);
+  if (form.assumptions)
+    suggestions.push(`Validate your key assumptions ("${form.assumptions.slice(0, 60)}...") with data or expert input before committing resources.`);
+  if (suggestions.length === 0) {
+    suggestions.push(
+      "Run a pre-mortem: imagine the decision failed -- what would have caused it? Address those factors proactively.",
+      "Seek a dissenting opinion from someone not involved in the decision to challenge your assumptions."
+    );
+  }
+
+  /* --- Key Improvements --- */
+  const improvements: string[] = [];
+  if (!form.successMetrics)
+    improvements.push("Define measurable success metrics. Without them, you cannot objectively evaluate outcomes.");
+  if (!form.optionB && !form.optionC)
+    improvements.push("Consider at least one alternative option. Single-option decisions lack comparison and increase bias risk.");
+  if (form.externalFactors.length < 2)
+    improvements.push("Identify more external factors. Decisions made in isolation from market forces often underperform.");
+  if (!form.dependencies)
+    improvements.push("Map out dependencies. Understanding what must happen first prevents execution bottlenecks.");
+  if (!form.stakeholders)
+    improvements.push("Identify stakeholders. Decisions without stakeholder buy-in face implementation resistance.");
+  if (form.priorities.length < 2)
+    improvements.push("Select more priorities to create a richer weighting model for option evaluation.");
+  if (!form.ethicalConsiderations)
+    improvements.push("Consider ethical dimensions. Decisions with unexamined ethical implications carry reputational risk.");
+  if (!form.longTermVision)
+    improvements.push("Connect this decision to a long-term vision. Short-term optimal choices sometimes conflict with strategic direction.");
+  if (!form.deepDiveDoNothing)
+    improvements.push("Articulate the cost of inaction. Understanding the 'do nothing' scenario provides a critical baseline.");
+
+  /* --- Next Steps --- */
+  const nextSteps: string[] = [];
+  if (topOption) {
+    nextSteps.push(`Deep-dive into ${topOption.label}: break it into concrete action items with owners and deadlines.`);
+  }
+  if (form.stakeholders) {
+    nextSteps.push(`Align with key stakeholders (${form.stakeholders.slice(0, 40)}) -- present the analysis and gather feedback.`);
+  }
+  nextSteps.push("Set a decision deadline to prevent analysis paralysis -- commit to deciding by a specific date.");
+  if (reversibility === "irreversible") {
+    nextSteps.push("For irreversible decisions, schedule a formal review with all decision-makers before final commitment.");
+  }
+  if (timeframe === "immediate" || urgency === "critical") {
+    nextSteps.push("Create a 48-hour action plan with the first three concrete steps for the chosen option.");
+  } else {
+    nextSteps.push("Schedule a follow-up review in 1-2 weeks to reassess based on any new information.");
+  }
+  nextSteps.push("Document the decision rationale now -- future you will thank present you when context is needed.");
 
   return {
     causalFactors,
@@ -219,6 +312,9 @@ function generateAnalysis(form: FormState) {
     optionInsights,
     categoryAdvice,
     topOption,
+    suggestions,
+    improvements,
+    nextSteps,
     urgencyNote:
       urgency === "critical"
         ? "Given the critical urgency, bias toward action. A good decision now often outperforms a perfect decision later."
@@ -314,7 +410,7 @@ export default function AIAgentPredictorBook() {
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [submitted, setSubmitted] = useState(false);
 
-  const totalPages = 11;
+  const totalPages = 12;
 
   const needsExtraDetail = useMemo(() => {
     return (
@@ -1232,6 +1328,91 @@ export default function AIAgentPredictorBook() {
                 </div>
               </BookPage>
 
+              {/* ====== ANALYSIS PAGE 3: Suggestions, Improvements & Next Steps ====== */}
+              <BookPage className="bg-[#181512] text-[#F2EFEA] p-0 overflow-hidden">
+                <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
+                  <div className="inline-flex items-center gap-3 text-[10px] uppercase tracking-[0.14em] text-[#8a8178] mb-5" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    <span className="inline-block h-[5px] w-[5px] rounded-full bg-[#2F5D50]" />
+                    R3 &mdash; Recommendations
+                  </div>
+                  <h2
+                    className="text-[1.4rem] sm:text-[1.6rem] leading-[1.05] tracking-[-0.03em] text-[#F2EFEA] mb-4"
+                    style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 300 }}
+                  >
+                    Suggestions &amp;
+                    <br />
+                    <span className="italic text-[#2F5D50]">next steps.</span>
+                  </h2>
+
+                  {!submitted ? (
+                    <div className="flex-1 flex items-center justify-center">
+                      <p className="text-[14px] text-[#F2EFEA]/40 text-center font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        Submit the form to see recommendations.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex-1 space-y-3 overflow-y-auto">
+                      {/* Suggestions */}
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.14em] text-[#C48C56] mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          AI Suggestions
+                        </p>
+                        <div className="space-y-1.5">
+                          {analysis.suggestions.map((s, i) => (
+                            <div key={i} className="flex gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2">
+                              <span className="text-[#C48C56] text-[10px] mt-0.5 flex-shrink-0">{String(i + 1).padStart(2, "0")}</span>
+                              <p className="text-[11px] leading-5 text-[#F2EFEA]/70 font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                                {s}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Key Improvements */}
+                      {analysis.improvements.length > 0 && (
+                        <div>
+                          <p className="text-[10px] uppercase tracking-[0.14em] text-[#2F5D50] mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            Key Improvements
+                          </p>
+                          <div className="space-y-1.5">
+                            {analysis.improvements.slice(0, 4).map((imp, i) => (
+                              <div key={i} className="flex gap-2">
+                                <div className="flex-shrink-0 mt-1.5">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-[#2F5D50]" />
+                                </div>
+                                <p className="text-[11px] leading-5 text-[#F2EFEA]/60 font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                                  {imp}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <Separator className="bg-white/10" />
+
+                      {/* Next Steps */}
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.14em] text-[#C48C56] mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          Recommended Next Steps
+                        </p>
+                        <div className="space-y-1.5">
+                          {analysis.nextSteps.map((ns, i) => (
+                            <div key={i} className="flex gap-2 bg-[#2F5D50]/10 border border-[#2F5D50]/15 rounded-lg px-3 py-2">
+                              <span className="text-[#2F5D50] text-[10px] mt-0.5 flex-shrink-0">&#10003;</span>
+                              <p className="text-[11px] leading-5 text-[#F2EFEA]/70 font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                                {ns}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </BookPage>
+
               {/* ====== BACK COVER ====== */}
               <BookPage className="bg-[#181512] text-[#F2EFEA] p-0 overflow-hidden">
                 <div className="relative w-full h-full flex flex-col justify-between" style={{ minHeight: "100%" }}>
@@ -1331,6 +1512,41 @@ export default function AIAgentPredictorBook() {
         .predictor-page-content {
           background: #f4f0e9;
           box-shadow: inset 0 0 30px rgba(0,0,0,0.03);
+          overflow: hidden;
+        }
+        .predictor-page-content > div {
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(196,140,86,0.3) transparent;
+        }
+        .predictor-page-content > div::-webkit-scrollbar {
+          width: 4px;
+        }
+        .predictor-page-content > div::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .predictor-page-content > div::-webkit-scrollbar-thumb {
+          background: rgba(196,140,86,0.3);
+          border-radius: 2px;
+        }
+        .predictor-page-content > div::-webkit-scrollbar-thumb:hover {
+          background: rgba(196,140,86,0.5);
+        }
+        .predictor-page-content input,
+        .predictor-page-content textarea,
+        .predictor-page-content select,
+        .predictor-page-content button[role="combobox"] {
+          pointer-events: auto !important;
+          user-select: text !important;
+          -webkit-user-select: text !important;
+        }
+        .predictor-page-content label {
+          pointer-events: auto !important;
+          cursor: pointer;
+        }
+        .predictor-page-content button {
+          pointer-events: auto !important;
         }
       `}</style>
     </section>
