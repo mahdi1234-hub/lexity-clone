@@ -4,6 +4,7 @@ import React, {
   useRef,
   useState,
   useCallback,
+  useEffect,
   forwardRef,
   useMemo,
 } from "react";
@@ -457,6 +458,25 @@ export default function AIAgentPredictorBook() {
     };
   }, [form]);
 
+  /* Stop form element interactions from triggering flipbook page flips */
+  const sectionRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    const formSelectors = "input, textarea, select, button, label, [role='combobox'], [role='listbox'], [role='option'], [data-radix-collection-item]";
+    const handler = (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (target.closest(formSelectors)) {
+        e.stopPropagation();
+      }
+    };
+    const events = ["mousedown", "mousemove", "mouseup", "touchstart", "touchmove", "touchend", "pointerdown", "pointermove", "pointerup"];
+    events.forEach((evt) => section.addEventListener(evt, handler, true));
+    return () => {
+      events.forEach((evt) => section.removeEventListener(evt, handler, true));
+    };
+  }, []);
+
   const agentMessage = useMemo(() => {
     if (!form.decisionTitle) return "Start by describing the decision you are facing. I will guide you through a structured causal analysis.";
     if (!stepCompletion.step1) return "Complete the decision context -- category and urgency help me calibrate the analysis depth.";
@@ -481,7 +501,7 @@ export default function AIAgentPredictorBook() {
   }, [form.decisionCategory, form.urgency, form.painPoints]);
 
   return (
-    <section id="ai-predictor" className="relative border-b border-[#d9d1c5] bg-[#f4f0e9] overflow-hidden">
+    <section ref={sectionRef} id="ai-predictor" className="relative border-b border-[#d9d1c5] bg-[#f4f0e9] overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(196,140,86,0.06),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(47,93,80,0.04),transparent_24%)]" />
       </div>
@@ -590,9 +610,9 @@ export default function AIAgentPredictorBook() {
               startPage={0}
               clickEventForward={false}
               useMouseEvents
-              swipeDistance={30}
+              swipeDistance={80}
               showPageCorners
-              disableFlipByClick={false}
+              disableFlipByClick
             >
               {/* ====== COVER ====== */}
               <BookPage className="bg-[#181512] text-[#F2EFEA] flex flex-col justify-between p-0 overflow-hidden">
