@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 
 const LexityBookViewer = dynamic(() => import("@/components/LexityBookViewer"), { ssr: false });
+const AIAgentPredictorBook = dynamic(() => import("@/components/AIAgentPredictorBook"), { ssr: false });
 import WelcomeModal from "@/components/WelcomeModal";
 
 export default function LandingPage() {
@@ -401,8 +402,117 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* AI Agent Predictor CTA Section */}
+      <section className="relative border-b border-[#d9d1c5] bg-[#F2EFEA] overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div
+            className="absolute inset-0"
+            style={{
+              background: "radial-gradient(circle at top right, rgba(47,93,80,0.06), transparent 30%), radial-gradient(circle at bottom left, rgba(196,140,86,0.04), transparent 26%)",
+            }}
+          ></div>
+        </div>
+
+        <div className="relative max-w-[1380px] mx-auto grid lg:grid-cols-[0.34fr_1fr]">
+          {/* Left Rail */}
+          <div className="border-b lg:border-b-0 lg:border-r border-[#d9d1c5] px-6 sm:px-8 lg:px-10 py-12 lg:py-16">
+            <div className="lg:sticky lg:top-32">
+              <div className="inline-flex items-center gap-3 text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-[#6f675f] mb-8" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                <span className="inline-block h-[6px] w-[6px] rounded-full bg-[#2F5D50]"></span>
+                AI Agent Predictor
+              </div>
+
+              <p className="max-w-[14rem] text-[13px] leading-7 text-[#7a7268] font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                A causal decision-making engine that walks you through structured analysis and delivers actionable insights.
+              </p>
+            </div>
+          </div>
+
+          {/* Right Content */}
+          <div className="px-6 sm:px-8 lg:px-14 py-14 sm:py-16 lg:py-20">
+            <div className="max-w-[980px]">
+              <h2
+                className="tracking-[-0.04em] leading-[1.04] text-[2.2rem] sm:text-[2.8rem] md:text-[3.4rem] lg:text-[4.2rem] text-[#181512]"
+                style={{ fontFamily: "'Instrument Serif', 'Plus Jakarta Sans', serif" }}
+              >
+                Make decisions with <span className="italic text-[#2F5D50]">causal clarity</span> &mdash; guided by an AI that understands context.
+              </h2>
+
+              <div className="mt-10 lg:mt-12 grid md:grid-cols-[1fr_0.9fr] gap-10 lg:gap-14 items-start pt-8 border-t border-[#d9d1c5]">
+                <div className="space-y-6">
+                  <p className="text-[15px] sm:text-[16px] leading-8 text-[#5f5851] font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    Stop guessing. The AI Agent Predictor uses a structured multi-step process to map causal relationships, score your options, and surface insights you might have missed.
+                  </p>
+
+                  <p className="text-[15px] sm:text-[16px] leading-8 text-[#5f5851] font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    From strategic pivots to operational trade-offs, the engine adapts to your context with conditional logic branching &mdash; asking deeper questions when the situation demands it.
+                  </p>
+
+                  <div className="pt-4 grid sm:grid-cols-3 gap-5">
+                    <div className="border-t border-[#d9d1c5] pt-4">
+                      <p className="text-[10px] uppercase tracking-[0.14em] text-[#8a8178] mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>01</p>
+                      <p className="text-[13px] leading-6 text-[#1f1b18]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Causal analysis</p>
+                    </div>
+                    <div className="border-t border-[#d9d1c5] pt-4">
+                      <p className="text-[10px] uppercase tracking-[0.14em] text-[#8a8178] mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>02</p>
+                      <p className="text-[13px] leading-6 text-[#1f1b18]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Option scoring</p>
+                    </div>
+                    <div className="border-t border-[#d9d1c5] pt-4">
+                      <p className="text-[10px] uppercase tracking-[0.14em] text-[#8a8178] mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>03</p>
+                      <p className="text-[13px] leading-6 text-[#1f1b18]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Adaptive guidance</p>
+                    </div>
+                  </div>
+
+                  <div className="pt-6">
+                    <a
+                      href="#ai-predictor"
+                      className="inline-flex items-center gap-3 bg-[#2F5D50] text-[#F2EFEA] px-8 py-4 rounded-full text-base font-medium transition-all hover:scale-105 hover:bg-[#264a40] cursor-pointer"
+                      style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                    >
+                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M10 21h4" strokeLinecap="round" />
+                      </svg>
+                      Try AI Agent Predictor
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+
+                <div className="group relative">
+                  <div className="relative overflow-hidden bg-[#181512] min-h-[420px] lg:min-h-[500px] rounded-sm">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#2F5D50]/30 via-[#181512] to-[#181512]" />
+                    <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px)", backgroundSize: "40px 40px" }}></div>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
+                      <svg className="w-16 h-16 text-[#2F5D50] mb-6 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.8">
+                        <circle cx="12" cy="12" r="3" />
+                        <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
+                      </svg>
+                      <p className="text-[1.8rem] leading-[1] tracking-[-0.03em] text-[#F2EFEA] mb-3" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 300 }}>
+                        6 Steps to
+                        <br />
+                        <span className="italic text-[#2F5D50]">Clarity</span>
+                      </p>
+                      <p className="text-[13px] text-[#F2EFEA]/40 font-light max-w-[20ch]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        A structured flipbook experience for professional decision-making.
+                      </p>
+                    </div>
+                    <div className="absolute inset-5 sm:inset-6 border border-[rgba(255,255,255,0.08)] transition-all duration-500 group-hover:border-[rgba(255,255,255,0.15)]"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Platform Guide Book Viewer */}
       <LexityBookViewer />
+
+      {/* AI Agent Predictor Flipbook */}
+      <AIAgentPredictorBook />
 
       {/* Footer */}
       <footer className="bg-[#2C2824] text-[#F2EFEA] py-12">
