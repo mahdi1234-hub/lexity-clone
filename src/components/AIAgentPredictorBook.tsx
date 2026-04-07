@@ -1193,7 +1193,7 @@ export default function AIAgentPredictorBook() {
                         <p className="text-[10px] uppercase tracking-[0.14em] text-[#C48C56] mb-1.5" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           Decision
                         </p>
-                        <p className="text-[13px] leading-6 text-[#F2EFEA]/80 font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        <p className="text-[13px] leading-6 text-[#F2EFEA] font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           {form.decisionTitle || "Untitled decision"}
                         </p>
                       </div>
@@ -1202,7 +1202,7 @@ export default function AIAgentPredictorBook() {
                         <p className="text-[10px] uppercase tracking-[0.14em] text-[#2F5D50] mb-1.5" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           Category Insight
                         </p>
-                        <p className="text-[12px] leading-6 text-[#F2EFEA]/70 font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        <p className="text-[12px] leading-6 text-[#F2EFEA]/95 font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           {analysis.categoryAdvice}
                         </p>
                       </div>
@@ -1217,7 +1217,7 @@ export default function AIAgentPredictorBook() {
                               <div className="flex-shrink-0 mt-1.5">
                                 <div className="w-1.5 h-1.5 rounded-full bg-[#C48C56]" />
                               </div>
-                              <p className="text-[12px] leading-6 text-[#F2EFEA]/65 font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              <p className="text-[12px] leading-6 text-[#F2EFEA]/90 font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                                 {cf}
                               </p>
                             </div>
@@ -1229,7 +1229,7 @@ export default function AIAgentPredictorBook() {
                         <p className="text-[10px] uppercase tracking-[0.14em] text-[#8a8178] mb-1.5" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           Timing
                         </p>
-                        <p className="text-[12px] leading-6 text-[#F2EFEA]/65 font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        <p className="text-[12px] leading-6 text-[#F2EFEA]/90 font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           {analysis.urgencyNote}
                         </p>
                       </div>
@@ -1275,7 +1275,7 @@ export default function AIAgentPredictorBook() {
                               {opt.score}
                             </span>
                           </div>
-                          <p className="text-[11px] leading-5 text-[#F2EFEA]/60 font-light mb-2 line-clamp-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          <p className="text-[11px] leading-5 text-[#F2EFEA]/90 font-normal mb-2 line-clamp-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                             {opt.value}
                           </p>
                           <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
@@ -1310,7 +1310,7 @@ export default function AIAgentPredictorBook() {
                             {analysis.riskLevel}
                           </span>
                         </div>
-                        <p className="text-[12px] leading-6 text-[#F2EFEA]/65 font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        <p className="text-[12px] leading-6 text-[#F2EFEA]/90 font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           {analysis.riskNote}
                         </p>
                       </div>
@@ -1320,7 +1320,7 @@ export default function AIAgentPredictorBook() {
                           <p className="text-[10px] uppercase tracking-[0.14em] text-[#2F5D50] mb-1.5" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                             AI Recommendation
                           </p>
-                          <p className="text-[12px] leading-6 text-[#F2EFEA]/80 font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          <p className="text-[12px] leading-6 text-[#F2EFEA] font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                             Based on your priorities and context, <strong className="text-[#2F5D50]">{analysis.topOption.label}</strong> scores
                             highest at {analysis.topOption.score}/100. Consider this as your primary path forward.
                           </p>
@@ -1364,7 +1364,7 @@ export default function AIAgentPredictorBook() {
                           {analysis.suggestions.map((s, i) => (
                             <div key={i} className="flex gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2">
                               <span className="text-[#C48C56] text-[10px] mt-0.5 flex-shrink-0">{String(i + 1).padStart(2, "0")}</span>
-                              <p className="text-[11px] leading-5 text-[#F2EFEA]/70 font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              <p className="text-[11px] leading-5 text-[#F2EFEA]/95 font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                                 {s}
                               </p>
                             </div>
@@ -1384,7 +1384,7 @@ export default function AIAgentPredictorBook() {
                                 <div className="flex-shrink-0 mt-1.5">
                                   <div className="w-1.5 h-1.5 rounded-full bg-[#2F5D50]" />
                                 </div>
-                                <p className="text-[11px] leading-5 text-[#F2EFEA]/60 font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                                <p className="text-[11px] leading-5 text-[#F2EFEA]/90 font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                                   {imp}
                                 </p>
                               </div>
@@ -1404,7 +1404,7 @@ export default function AIAgentPredictorBook() {
                           {analysis.nextSteps.map((ns, i) => (
                             <div key={i} className="flex gap-2 bg-[#2F5D50]/10 border border-[#2F5D50]/15 rounded-lg px-3 py-2">
                               <span className="text-[#2F5D50] text-[10px] mt-0.5 flex-shrink-0">&#10003;</span>
-                              <p className="text-[11px] leading-5 text-[#F2EFEA]/70 font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              <p className="text-[11px] leading-5 text-[#F2EFEA]/95 font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                                 {ns}
                               </p>
                             </div>
