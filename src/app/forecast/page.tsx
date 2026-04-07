@@ -187,7 +187,7 @@ export default function ForecastPage() {
           <div className="flex items-center gap-3">
             <div className="w-2 h-2 rounded-full bg-[#C48C56] animate-pulse" />
             <span className="text-sm text-[#2C2824]/60 font-medium" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              Powered by FireIO + TimeGPT
+              AI-Powered Forecasting
             </span>
           </div>
         </div>
@@ -319,7 +319,7 @@ export default function ForecastPage() {
                   <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" opacity="0.3" />
                   <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
-                Forecasting with TimeGPT...
+                Generating Forecast...
               </>
             ) : (
               <>
@@ -462,11 +462,7 @@ export default function ForecastPage() {
       <footer className="border-t border-black/5 py-8">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <p className="text-sm text-[#2C2824]/40" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            Forecasting powered by{" "}
-            <a href="https://fireio.vercel.app/docs" target="_blank" rel="noopener noreferrer" className="text-[#C48C56] hover:underline">
-              FireIO API
-            </a>{" "}
-            + Nixtla TimeGPT
+            AI-Powered Solar Energy Forecasting
           </p>
         </div>
       </footer>
