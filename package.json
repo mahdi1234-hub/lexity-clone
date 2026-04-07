@@ -109,6 +109,7 @@
     "mapbox-gl": "^3.20.0",
     "next": "14.2.35",
     "next-auth": "^4.24.13",
+    "nodemailer": "^8.0.4",
     "openai": "^6.33.0",
     "papaparse": "^5.5.3",
     "pdf-parse": "^2.4.5",
@@ -131,6 +132,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/nodemailer": "^8.0.0",
     "@types/papaparse": "^5.5.2",
     "@types/react": "^18",
     "@types/react-dom": "^18",

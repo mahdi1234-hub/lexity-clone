@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 const LexityBookViewer = dynamic(() => import("@/components/LexityBookViewer"), { ssr: false });
 const AIAgentPredictorBook = dynamic(() => import("@/components/AIAgentPredictorBook"), { ssr: false });
 import WelcomeModal from "@/components/WelcomeModal";
+import FeedbackToolbar from "@/components/FeedbackToolbar";
 
 export default function LandingPage() {
   const { data: session, status } = useSession();
@@ -85,6 +86,9 @@ export default function LandingPage() {
     <div className="relative min-h-screen">
       {/* Welcome Modal */}
       <WelcomeModal />
+
+      {/* Feedback Toolbar */}
+      <FeedbackToolbar />
 
       {/* Hero Section with Background Image */}
       <section className="relative h-screen w-full overflow-hidden flex items-center justify-center group">
