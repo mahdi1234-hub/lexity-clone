@@ -349,7 +349,7 @@ const PageTitle = ({ children }: { children: React.ReactNode }) => (
 const FieldLabel = ({ children, htmlFor }: { children: React.ReactNode; htmlFor?: string }) => (
   <Label
     htmlFor={htmlFor}
-    className="text-[12px] font-medium text-[#5f5851] tracking-wide uppercase"
+    className="text-[12px] font-semibold text-[#2C2824] tracking-wide uppercase"
     style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
   >
     {children}
@@ -359,16 +359,16 @@ const FieldLabel = ({ children, htmlFor }: { children: React.ReactNode; htmlFor?
 const StyledInput = (props: React.ComponentProps<typeof Input>) => (
   <Input
     {...props}
-    className={`bg-white/60 border-[#d9d1c5] text-[#181512] text-[13px] placeholder:text-[#8a8178]/60 focus:border-[#C48C56] focus:ring-[#C48C56]/20 ${props.className || ""}`}
-    style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", ...props.style }}
+    className={`bg-white border-[#d9d1c5] text-[#000000] text-[14px] font-normal placeholder:text-[#999] focus:border-[#C48C56] focus:ring-[#C48C56]/20 ${props.className || ""}`}
+    style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#000", ...props.style }}
   />
 );
 
 const StyledTextarea = (props: React.ComponentProps<typeof Textarea>) => (
   <Textarea
     {...props}
-    className={`bg-white/60 border-[#d9d1c5] text-[#181512] text-[13px] placeholder:text-[#8a8178]/60 focus:border-[#C48C56] focus:ring-[#C48C56]/20 min-h-[60px] resize-none ${props.className || ""}`}
-    style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", ...props.style }}
+    className={`bg-white border-[#d9d1c5] text-[#000000] text-[14px] font-normal placeholder:text-[#999] focus:border-[#C48C56] focus:ring-[#C48C56]/20 min-h-[60px] resize-none ${props.className || ""}`}
+    style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#000", ...props.style }}
   />
 );
 
@@ -392,7 +392,7 @@ const CheckboxField = ({
     />
     <label
       htmlFor={id}
-      className="text-[12px] text-[#5f5851] cursor-pointer leading-tight"
+      className="text-[13px] text-[#000] cursor-pointer leading-tight"
       style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
     >
       {label}
@@ -659,7 +659,7 @@ export default function AIAgentPredictorBook() {
               {/* ====== STEP 1: Decision Context ====== */}
               <BookPage className="bg-[#f4f0e9] p-0 overflow-hidden">
                 <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
-                  <SectionBadge number="01" label="Decision Context" />
+                  <SectionBadge number="01" label="🎯 Decision Context" />
                   <PageTitle>
                     What decision are you
                     <br />
@@ -684,7 +684,7 @@ export default function AIAgentPredictorBook() {
                     <div className="space-y-1.5">
                       <FieldLabel>Category</FieldLabel>
                       <Select value={form.decisionCategory} onValueChange={(v) => updateField("decisionCategory", v)}>
-                        <SelectTrigger className="bg-white/60 border-[#d9d1c5] text-[13px] text-[#181512] focus:ring-[#C48C56]/20" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        <SelectTrigger className="bg-white border-[#d9d1c5] text-[14px] text-[#000] focus:ring-[#C48C56]/20" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           <SelectValue placeholder="Select category..." />
                         </SelectTrigger>
                         <SelectContent>
@@ -701,7 +701,7 @@ export default function AIAgentPredictorBook() {
                     <div className="space-y-1.5">
                       <FieldLabel>Urgency Level</FieldLabel>
                       <Select value={form.urgency} onValueChange={(v) => updateField("urgency", v)}>
-                        <SelectTrigger className="bg-white/60 border-[#d9d1c5] text-[13px] text-[#181512] focus:ring-[#C48C56]/20" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        <SelectTrigger className="bg-white border-[#d9d1c5] text-[14px] text-[#000] focus:ring-[#C48C56]/20" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           <SelectValue placeholder="How urgent is this?" />
                         </SelectTrigger>
                         <SelectContent>
@@ -735,7 +735,7 @@ export default function AIAgentPredictorBook() {
               {/* ====== STEP 2: Current Situation ====== */}
               <BookPage className="bg-[#f4f0e9] p-0 overflow-hidden">
                 <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
-                  <SectionBadge number="02" label="Current Situation" />
+                  <SectionBadge number="02" label="📊 Current Situation" />
                   <PageTitle>
                     Where do things
                     <br />
@@ -788,7 +788,7 @@ export default function AIAgentPredictorBook() {
                     <div className="space-y-1.5">
                       <FieldLabel>Budget Range</FieldLabel>
                       <Select value={form.budget} onValueChange={(v) => updateField("budget", v)}>
-                        <SelectTrigger className="bg-white/60 border-[#d9d1c5] text-[13px] text-[#181512] focus:ring-[#C48C56]/20" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        <SelectTrigger className="bg-white border-[#d9d1c5] text-[14px] text-[#000] focus:ring-[#C48C56]/20" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           <SelectValue placeholder="Approximate budget..." />
                         </SelectTrigger>
                         <SelectContent>
@@ -807,7 +807,7 @@ export default function AIAgentPredictorBook() {
               {/* ====== STEP 3: Desired Outcome ====== */}
               <BookPage className="bg-[#f4f0e9] p-0 overflow-hidden">
                 <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
-                  <SectionBadge number="03" label="Desired Outcome" />
+                  <SectionBadge number="03" label="🏆 Desired Outcome" />
                   <PageTitle>
                     What does success
                     <br />
@@ -845,7 +845,7 @@ export default function AIAgentPredictorBook() {
                     <div className="space-y-1.5">
                       <FieldLabel>Decision Timeframe</FieldLabel>
                       <Select value={form.timeframe} onValueChange={(v) => updateField("timeframe", v)}>
-                        <SelectTrigger className="bg-white/60 border-[#d9d1c5] text-[13px] text-[#181512] focus:ring-[#C48C56]/20" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        <SelectTrigger className="bg-white border-[#d9d1c5] text-[14px] text-[#000] focus:ring-[#C48C56]/20" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           <SelectValue placeholder="When should results materialize?" />
                         </SelectTrigger>
                         <SelectContent>
@@ -860,7 +860,7 @@ export default function AIAgentPredictorBook() {
                     <div className="space-y-1.5">
                       <FieldLabel>Risk Tolerance</FieldLabel>
                       <Select value={form.riskTolerance} onValueChange={(v) => updateField("riskTolerance", v)}>
-                        <SelectTrigger className="bg-white/60 border-[#d9d1c5] text-[13px] text-[#181512] focus:ring-[#C48C56]/20" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        <SelectTrigger className="bg-white border-[#d9d1c5] text-[14px] text-[#000] focus:ring-[#C48C56]/20" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           <SelectValue placeholder="How much risk can you accept?" />
                         </SelectTrigger>
                         <SelectContent>
@@ -883,7 +883,7 @@ export default function AIAgentPredictorBook() {
               {/* ====== STEP 4: Options & Alternatives ====== */}
               <BookPage className="bg-[#f4f0e9] p-0 overflow-hidden">
                 <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
-                  <SectionBadge number="04" label="Options &amp; Alternatives" />
+                  <SectionBadge number="04" label="🔀 Options &amp; Alternatives" />
                   <PageTitle>
                     What paths are
                     <br />
@@ -947,7 +947,7 @@ export default function AIAgentPredictorBook() {
               {/* ====== STEP 5: Causal Factors ====== */}
               <BookPage className="bg-[#f4f0e9] p-0 overflow-hidden">
                 <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
-                  <SectionBadge number="05" label="Causal Factors" />
+                  <SectionBadge number="05" label="🔗 Causal Factors" />
                   <PageTitle>
                     What forces shape
                     <br />
@@ -999,7 +999,7 @@ export default function AIAgentPredictorBook() {
                     <div className="space-y-1.5">
                       <FieldLabel>Reversibility</FieldLabel>
                       <Select value={form.reversibility} onValueChange={(v) => updateField("reversibility", v)}>
-                        <SelectTrigger className="bg-white/60 border-[#d9d1c5] text-[13px] text-[#181512] focus:ring-[#C48C56]/20" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        <SelectTrigger className="bg-white border-[#d9d1c5] text-[14px] text-[#000] focus:ring-[#C48C56]/20" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           <SelectValue placeholder="Can this decision be undone?" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1016,7 +1016,7 @@ export default function AIAgentPredictorBook() {
               {/* ====== STEP 6: Values & Priorities ====== */}
               <BookPage className="bg-[#f4f0e9] p-0 overflow-hidden">
                 <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
-                  <SectionBadge number="06" label="Values &amp; Priorities" />
+                  <SectionBadge number="06" label="⚖️ Values &amp; Priorities" />
                   <PageTitle>
                     What matters most
                     <br />
@@ -1100,7 +1100,7 @@ export default function AIAgentPredictorBook() {
               {/* ====== DEEP DIVE PAGE (always rendered, adapts content) ====== */}
               <BookPage className="bg-[#f4f0e9] p-0 overflow-hidden">
                 <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
-                  <SectionBadge number="06+" label="Deep Dive" />
+                  <SectionBadge number="06+" label="🔍 Deep Dive" />
                   <PageTitle>
                     {needsExtraDetail ? (
                       <>
@@ -1170,7 +1170,7 @@ export default function AIAgentPredictorBook() {
                 <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
                   <div className="inline-flex items-center gap-3 text-[10px] uppercase tracking-[0.14em] text-[#8a8178] mb-6" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     <span className="inline-block h-[5px] w-[5px] rounded-full bg-[#C48C56]" />
-                    R1 &mdash; Causal Analysis
+                    R1 &mdash; 🧠 Causal Analysis
                   </div>
                   <h2
                     className="text-[1.5rem] sm:text-[1.8rem] leading-[1.05] tracking-[-0.03em] text-[#F2EFEA] mb-4"
@@ -1243,7 +1243,7 @@ export default function AIAgentPredictorBook() {
                 <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
                   <div className="inline-flex items-center gap-3 text-[10px] uppercase tracking-[0.14em] text-[#8a8178] mb-6" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     <span className="inline-block h-[5px] w-[5px] rounded-full bg-[#C48C56]" />
-                    R2 &mdash; Option Scoring
+                    R2 &mdash; 📈 Option Scoring
                   </div>
                   <h2
                     className="text-[1.5rem] sm:text-[1.8rem] leading-[1.05] tracking-[-0.03em] text-[#F2EFEA] mb-4"
@@ -1336,7 +1336,7 @@ export default function AIAgentPredictorBook() {
                 <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
                   <div className="inline-flex items-center gap-3 text-[10px] uppercase tracking-[0.14em] text-[#8a8178] mb-5" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     <span className="inline-block h-[5px] w-[5px] rounded-full bg-[#2F5D50]" />
-                    R3 &mdash; Recommendations
+                    R3 &mdash; 💡 Recommendations
                   </div>
                   <h2
                     className="text-[1.4rem] sm:text-[1.6rem] leading-[1.05] tracking-[-0.03em] text-[#F2EFEA] mb-4"
