@@ -24,50 +24,47 @@ import {
 /* ------------------------------------------------------------------ */
 /*  Flipbook Page wrapper (forwardRef required by react-pageflip)     */
 /* ------------------------------------------------------------------ */
-const Page = forwardRef<
+const BookPage = forwardRef<
   HTMLDivElement,
   { children: React.ReactNode; className?: string }
 >(({ children, className = "" }, ref) => (
-  <div ref={ref} className={`page-content ${className}`}>
+  <div ref={ref} className={`predictor-page-content ${className}`}>
     {children}
   </div>
 ));
-Page.displayName = "Page";
+BookPage.displayName = "BookPage";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 interface FormState {
-  /* Step 1 - Decision Context */
   decisionTitle: string;
   decisionCategory: string;
   urgency: string;
   stakeholders: string;
-  /* Step 2 - Current Situation */
   currentState: string;
   painPoints: string[];
   constraints: string;
   budget: string;
-  /* Step 3 - Desired Outcome */
   desiredOutcome: string;
   successMetrics: string;
   timeframe: string;
   riskTolerance: string;
-  /* Step 4 - Options & Alternatives */
   optionA: string;
   optionB: string;
   optionC: string;
   additionalContext: string;
-  /* Step 5 - Causal Factors */
   externalFactors: string[];
   dependencies: string;
   assumptions: string;
   reversibility: string;
-  /* Step 6 - Values & Priorities */
   priorities: string[];
   ethicalConsiderations: string;
   longTermVision: string;
   dealBreakers: string;
+  deepDiveDoNothing: string;
+  deepDiveWorstCase: string;
+  deepDiveReference: string;
 }
 
 const INITIAL_FORM: FormState = {
@@ -95,6 +92,9 @@ const INITIAL_FORM: FormState = {
   ethicalConsiderations: "",
   longTermVision: "",
   dealBreakers: "",
+  deepDiveDoNothing: "",
+  deepDiveWorstCase: "",
+  deepDiveReference: "",
 };
 
 const PAIN_POINTS_OPTIONS = [
@@ -131,12 +131,11 @@ const PRIORITY_OPTIONS = [
 ];
 
 /* ------------------------------------------------------------------ */
-/*  AI Analysis Engine (client-side heuristic)                        */
+/*  AI Analysis Engine                                                */
 /* ------------------------------------------------------------------ */
 function generateAnalysis(form: FormState) {
   const { decisionCategory, urgency, riskTolerance, painPoints, priorities, externalFactors } = form;
 
-  /* Causal mapping */
   const causalFactors: string[] = [];
   if (painPoints.includes("High costs") && priorities.includes("Cost reduction"))
     causalFactors.push("Cost pressure is both a root cause and a priority -- address this first to unlock downstream benefits.");
@@ -158,7 +157,6 @@ function generateAnalysis(form: FormState) {
     );
   }
 
-  /* Risk assessment */
   let riskLevel = "Moderate";
   let riskNote = "";
   if (riskTolerance === "aggressive" && urgency === "critical") {
@@ -173,7 +171,6 @@ function generateAnalysis(form: FormState) {
     riskNote = "Evaluate the reversibility of each option -- favor decisions that can be adjusted if early signals are negative.";
   }
 
-  /* Option scoring */
   const options = [
     { label: "Option A", value: form.optionA },
     { label: "Option B", value: form.optionB },
@@ -192,7 +189,6 @@ function generateAnalysis(form: FormState) {
     return { ...o, score };
   });
 
-  /* Category-specific advice */
   let categoryAdvice = "";
   switch (decisionCategory) {
     case "strategic":
@@ -214,7 +210,6 @@ function generateAnalysis(form: FormState) {
       categoryAdvice = "Consider the second-order effects of this decision -- how will it change your available options 6-12 months from now?";
   }
 
-  /* Recommendation */
   const topOption = optionInsights.sort((a, b) => b.score - a.score)[0];
 
   return {
@@ -234,7 +229,7 @@ function generateAnalysis(form: FormState) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Sub-components for form pages                                     */
+/*  Sub-components                                                     */
 /* ------------------------------------------------------------------ */
 const SectionBadge = ({ number, label }: { number: string; label: string }) => (
   <div
@@ -319,7 +314,8 @@ export default function AIAgentPredictorBook() {
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [submitted, setSubmitted] = useState(false);
 
-  /* Conditional page count: cover + 6 form steps + conditionally extra detail page + analysis + back cover */
+  const totalPages = 11;
+
   const needsExtraDetail = useMemo(() => {
     return (
       form.decisionCategory === "strategic" ||
@@ -328,8 +324,6 @@ export default function AIAgentPredictorBook() {
       form.painPoints.length >= 4
     );
   }, [form.decisionCategory, form.urgency, form.painPoints]);
-
-  const totalPages = needsExtraDetail ? 11 : 10;
 
   const onFlip = useCallback((e: { data: number }) => {
     setCurrentPage(e.data);
@@ -356,7 +350,6 @@ export default function AIAgentPredictorBook() {
 
   const analysis = useMemo(() => generateAnalysis(form), [form]);
 
-  /* Step completion tracking for the AI agent guidance */
   const stepCompletion = useMemo(() => {
     return {
       step1: !!(form.decisionTitle && form.decisionCategory && form.urgency),
@@ -379,9 +372,20 @@ export default function AIAgentPredictorBook() {
     return "All steps complete. Flip to the analysis pages to see your personalized causal decision report.";
   }, [form.decisionTitle, stepCompletion]);
 
+  const deepDiveMessage = useMemo(() => {
+    if (form.decisionCategory === "strategic")
+      return "Strategic decisions have long-lasting effects. The AI agent detected this and is requesting additional scenario data.";
+    if (form.decisionCategory === "financial")
+      return "Financial decisions require sensitivity analysis. Please provide additional data points for a more robust model.";
+    if (form.urgency === "critical")
+      return "Critical urgency detected. The agent needs to understand fallback positions to provide responsible guidance.";
+    if (form.painPoints.length >= 4)
+      return "Multiple pain points detected. The causal graph is complex -- additional context will improve accuracy.";
+    return "Providing additional context helps the AI agent build a stronger causal model for your decision.";
+  }, [form.decisionCategory, form.urgency, form.painPoints]);
+
   return (
     <section id="ai-predictor" className="relative border-b border-[#d9d1c5] bg-[#f4f0e9] overflow-hidden">
-      {/* Atmospheric wash */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(196,140,86,0.06),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(47,93,80,0.04),transparent_24%)]" />
       </div>
@@ -485,7 +489,7 @@ export default function AIAgentPredictorBook() {
               showCover
               mobileScrollSupport
               onFlip={onFlip}
-              className="book-flip-container"
+              className="predictor-book-container"
               style={{}}
               startPage={0}
               clickEventForward={false}
@@ -495,10 +499,9 @@ export default function AIAgentPredictorBook() {
               disableFlipByClick={false}
             >
               {/* ====== COVER ====== */}
-              <Page className="bg-[#181512] text-[#F2EFEA] flex flex-col justify-between p-0 overflow-hidden">
+              <BookPage className="bg-[#181512] text-[#F2EFEA] flex flex-col justify-between p-0 overflow-hidden">
                 <div className="relative w-full h-full flex flex-col justify-between" style={{ minHeight: "100%" }}>
                   <div className="absolute inset-0 bg-gradient-to-br from-[#2F5D50]/20 via-[#181512] to-[#181512]" />
-                  {/* Decorative grid */}
                   <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
 
                   <div className="relative z-10 flex flex-col justify-between h-full p-8 sm:p-10">
@@ -552,10 +555,10 @@ export default function AIAgentPredictorBook() {
                     </div>
                   </div>
                 </div>
-              </Page>
+              </BookPage>
 
               {/* ====== STEP 1: Decision Context ====== */}
-              <Page className="bg-[#f4f0e9] p-0 overflow-hidden">
+              <BookPage className="bg-[#f4f0e9] p-0 overflow-hidden">
                 <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
                   <SectionBadge number="01" label="Decision Context" />
                   <PageTitle>
@@ -570,9 +573,9 @@ export default function AIAgentPredictorBook() {
 
                   <div className="flex-1 space-y-4">
                     <div className="space-y-1.5">
-                      <FieldLabel htmlFor="decisionTitle">Decision Title</FieldLabel>
+                      <FieldLabel htmlFor="pred-decisionTitle">Decision Title</FieldLabel>
                       <StyledInput
-                        id="decisionTitle"
+                        id="pred-decisionTitle"
                         placeholder="e.g., Should we expand into the European market?"
                         value={form.decisionTitle}
                         onChange={(e) => updateField("decisionTitle", e.target.value)}
@@ -612,9 +615,9 @@ export default function AIAgentPredictorBook() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <FieldLabel htmlFor="stakeholders">Key Stakeholders</FieldLabel>
+                      <FieldLabel htmlFor="pred-stakeholders">Key Stakeholders</FieldLabel>
                       <StyledInput
-                        id="stakeholders"
+                        id="pred-stakeholders"
                         placeholder="Who is affected by this decision?"
                         value={form.stakeholders}
                         onChange={(e) => updateField("stakeholders", e.target.value)}
@@ -628,10 +631,10 @@ export default function AIAgentPredictorBook() {
                     </p>
                   </div>
                 </div>
-              </Page>
+              </BookPage>
 
               {/* ====== STEP 2: Current Situation ====== */}
-              <Page className="bg-[#f4f0e9] p-0 overflow-hidden">
+              <BookPage className="bg-[#f4f0e9] p-0 overflow-hidden">
                 <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
                   <SectionBadge number="02" label="Current Situation" />
                   <PageTitle>
@@ -646,9 +649,9 @@ export default function AIAgentPredictorBook() {
 
                   <div className="flex-1 space-y-4">
                     <div className="space-y-1.5">
-                      <FieldLabel htmlFor="currentState">Current State Description</FieldLabel>
+                      <FieldLabel htmlFor="pred-currentState">Current State Description</FieldLabel>
                       <StyledTextarea
-                        id="currentState"
+                        id="pred-currentState"
                         placeholder="Describe the current situation in 2-3 sentences..."
                         value={form.currentState}
                         onChange={(e) => updateField("currentState", e.target.value)}
@@ -664,7 +667,7 @@ export default function AIAgentPredictorBook() {
                         {PAIN_POINTS_OPTIONS.map((pp) => (
                           <CheckboxField
                             key={pp}
-                            id={`pp-${pp}`}
+                            id={`pred-pp-${pp.replace(/\s/g, "-")}`}
                             label={pp}
                             checked={form.painPoints.includes(pp)}
                             onCheckedChange={() => toggleArrayItem("painPoints", pp)}
@@ -674,9 +677,9 @@ export default function AIAgentPredictorBook() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <FieldLabel htmlFor="constraints">Key Constraints</FieldLabel>
+                      <FieldLabel htmlFor="pred-constraints">Key Constraints</FieldLabel>
                       <StyledInput
-                        id="constraints"
+                        id="pred-constraints"
                         placeholder="Budget limits, deadlines, dependencies..."
                         value={form.constraints}
                         onChange={(e) => updateField("constraints", e.target.value)}
@@ -684,7 +687,7 @@ export default function AIAgentPredictorBook() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <FieldLabel htmlFor="budget">Budget Range</FieldLabel>
+                      <FieldLabel>Budget Range</FieldLabel>
                       <Select value={form.budget} onValueChange={(v) => updateField("budget", v)}>
                         <SelectTrigger className="bg-white/60 border-[#d9d1c5] text-[13px] text-[#181512] focus:ring-[#C48C56]/20" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           <SelectValue placeholder="Approximate budget..." />
@@ -700,10 +703,10 @@ export default function AIAgentPredictorBook() {
                     </div>
                   </div>
                 </div>
-              </Page>
+              </BookPage>
 
               {/* ====== STEP 3: Desired Outcome ====== */}
-              <Page className="bg-[#f4f0e9] p-0 overflow-hidden">
+              <BookPage className="bg-[#f4f0e9] p-0 overflow-hidden">
                 <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
                   <SectionBadge number="03" label="Desired Outcome" />
                   <PageTitle>
@@ -718,9 +721,9 @@ export default function AIAgentPredictorBook() {
 
                   <div className="flex-1 space-y-4">
                     <div className="space-y-1.5">
-                      <FieldLabel htmlFor="desiredOutcome">Desired Outcome</FieldLabel>
+                      <FieldLabel htmlFor="pred-desiredOutcome">Desired Outcome</FieldLabel>
                       <StyledTextarea
-                        id="desiredOutcome"
+                        id="pred-desiredOutcome"
                         placeholder="Describe what the ideal result looks like..."
                         value={form.desiredOutcome}
                         onChange={(e) => updateField("desiredOutcome", e.target.value)}
@@ -729,9 +732,9 @@ export default function AIAgentPredictorBook() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <FieldLabel htmlFor="successMetrics">Success Metrics</FieldLabel>
+                      <FieldLabel htmlFor="pred-successMetrics">Success Metrics</FieldLabel>
                       <StyledInput
-                        id="successMetrics"
+                        id="pred-successMetrics"
                         placeholder="e.g., 20% revenue increase, 50% faster delivery"
                         value={form.successMetrics}
                         onChange={(e) => updateField("successMetrics", e.target.value)}
@@ -776,12 +779,12 @@ export default function AIAgentPredictorBook() {
                     </p>
                   </div>
                 </div>
-              </Page>
+              </BookPage>
 
               {/* ====== STEP 4: Options & Alternatives ====== */}
-              <Page className="bg-[#f4f0e9] p-0 overflow-hidden">
+              <BookPage className="bg-[#f4f0e9] p-0 overflow-hidden">
                 <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
-                  <SectionBadge number="04" label="Options & Alternatives" />
+                  <SectionBadge number="04" label="Options &amp; Alternatives" />
                   <PageTitle>
                     What paths are
                     <br />
@@ -794,9 +797,9 @@ export default function AIAgentPredictorBook() {
 
                   <div className="flex-1 space-y-4">
                     <div className="space-y-1.5">
-                      <FieldLabel htmlFor="optionA">Option A (primary)</FieldLabel>
+                      <FieldLabel htmlFor="pred-optionA">Option A (primary)</FieldLabel>
                       <StyledTextarea
-                        id="optionA"
+                        id="pred-optionA"
                         placeholder="Describe the first option..."
                         value={form.optionA}
                         onChange={(e) => updateField("optionA", e.target.value)}
@@ -805,9 +808,9 @@ export default function AIAgentPredictorBook() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <FieldLabel htmlFor="optionB">Option B (alternative)</FieldLabel>
+                      <FieldLabel htmlFor="pred-optionB">Option B (alternative)</FieldLabel>
                       <StyledTextarea
-                        id="optionB"
+                        id="pred-optionB"
                         placeholder="Describe an alternative approach..."
                         value={form.optionB}
                         onChange={(e) => updateField("optionB", e.target.value)}
@@ -816,9 +819,9 @@ export default function AIAgentPredictorBook() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <FieldLabel htmlFor="optionC">Option C (creative / unconventional)</FieldLabel>
+                      <FieldLabel htmlFor="pred-optionC">Option C (creative / unconventional)</FieldLabel>
                       <StyledTextarea
-                        id="optionC"
+                        id="pred-optionC"
                         placeholder="Is there a third way? Think outside the box..."
                         value={form.optionC}
                         onChange={(e) => updateField("optionC", e.target.value)}
@@ -829,9 +832,9 @@ export default function AIAgentPredictorBook() {
                     <Separator className="bg-[#d9d1c5]" />
 
                     <div className="space-y-1.5">
-                      <FieldLabel htmlFor="additionalContext">Additional Context</FieldLabel>
+                      <FieldLabel htmlFor="pred-additionalContext">Additional Context</FieldLabel>
                       <StyledTextarea
-                        id="additionalContext"
+                        id="pred-additionalContext"
                         placeholder="Anything else relevant -- past attempts, competitor moves, gut feeling..."
                         value={form.additionalContext}
                         onChange={(e) => updateField("additionalContext", e.target.value)}
@@ -840,10 +843,10 @@ export default function AIAgentPredictorBook() {
                     </div>
                   </div>
                 </div>
-              </Page>
+              </BookPage>
 
               {/* ====== STEP 5: Causal Factors ====== */}
-              <Page className="bg-[#f4f0e9] p-0 overflow-hidden">
+              <BookPage className="bg-[#f4f0e9] p-0 overflow-hidden">
                 <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
                   <SectionBadge number="05" label="Causal Factors" />
                   <PageTitle>
@@ -863,7 +866,7 @@ export default function AIAgentPredictorBook() {
                         {EXTERNAL_FACTORS_OPTIONS.map((ef) => (
                           <CheckboxField
                             key={ef}
-                            id={`ef-${ef}`}
+                            id={`pred-ef-${ef.replace(/\s/g, "-")}`}
                             label={ef}
                             checked={form.externalFactors.includes(ef)}
                             onCheckedChange={() => toggleArrayItem("externalFactors", ef)}
@@ -875,9 +878,9 @@ export default function AIAgentPredictorBook() {
                     <Separator className="bg-[#d9d1c5]" />
 
                     <div className="space-y-1.5">
-                      <FieldLabel htmlFor="dependencies">Dependencies</FieldLabel>
+                      <FieldLabel htmlFor="pred-dependencies">Dependencies</FieldLabel>
                       <StyledInput
-                        id="dependencies"
+                        id="pred-dependencies"
                         placeholder="What must happen first or in parallel?"
                         value={form.dependencies}
                         onChange={(e) => updateField("dependencies", e.target.value)}
@@ -885,9 +888,9 @@ export default function AIAgentPredictorBook() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <FieldLabel htmlFor="assumptions">Key Assumptions</FieldLabel>
+                      <FieldLabel htmlFor="pred-assumptions">Key Assumptions</FieldLabel>
                       <StyledInput
-                        id="assumptions"
+                        id="pred-assumptions"
                         placeholder="What are you assuming to be true?"
                         value={form.assumptions}
                         onChange={(e) => updateField("assumptions", e.target.value)}
@@ -909,12 +912,12 @@ export default function AIAgentPredictorBook() {
                     </div>
                   </div>
                 </div>
-              </Page>
+              </BookPage>
 
               {/* ====== STEP 6: Values & Priorities ====== */}
-              <Page className="bg-[#f4f0e9] p-0 overflow-hidden">
+              <BookPage className="bg-[#f4f0e9] p-0 overflow-hidden">
                 <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
-                  <SectionBadge number="06" label="Values & Priorities" />
+                  <SectionBadge number="06" label="Values &amp; Priorities" />
                   <PageTitle>
                     What matters most
                     <br />
@@ -932,7 +935,7 @@ export default function AIAgentPredictorBook() {
                         {PRIORITY_OPTIONS.map((pr) => (
                           <CheckboxField
                             key={pr}
-                            id={`pr-${pr}`}
+                            id={`pred-pr-${pr.replace(/\s/g, "-")}`}
                             label={pr}
                             checked={form.priorities.includes(pr)}
                             onCheckedChange={() => {
@@ -948,9 +951,9 @@ export default function AIAgentPredictorBook() {
                     <Separator className="bg-[#d9d1c5]" />
 
                     <div className="space-y-1.5">
-                      <FieldLabel htmlFor="ethicalConsiderations">Ethical Considerations</FieldLabel>
+                      <FieldLabel htmlFor="pred-ethicalConsiderations">Ethical Considerations</FieldLabel>
                       <StyledInput
-                        id="ethicalConsiderations"
+                        id="pred-ethicalConsiderations"
                         placeholder="Any ethical dimensions to consider?"
                         value={form.ethicalConsiderations}
                         onChange={(e) => updateField("ethicalConsiderations", e.target.value)}
@@ -958,9 +961,9 @@ export default function AIAgentPredictorBook() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <FieldLabel htmlFor="longTermVision">Long-Term Vision</FieldLabel>
+                      <FieldLabel htmlFor="pred-longTermVision">Long-Term Vision</FieldLabel>
                       <StyledInput
-                        id="longTermVision"
+                        id="pred-longTermVision"
                         placeholder="Where do you want to be in 3-5 years?"
                         value={form.longTermVision}
                         onChange={(e) => updateField("longTermVision", e.target.value)}
@@ -968,9 +971,9 @@ export default function AIAgentPredictorBook() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <FieldLabel htmlFor="dealBreakers">Deal Breakers</FieldLabel>
+                      <FieldLabel htmlFor="pred-dealBreakers">Deal Breakers</FieldLabel>
                       <StyledInput
-                        id="dealBreakers"
+                        id="pred-dealBreakers"
                         placeholder="What would make any option unacceptable?"
                         value={form.dealBreakers}
                         onChange={(e) => updateField("dealBreakers", e.target.value)}
@@ -993,69 +996,83 @@ export default function AIAgentPredictorBook() {
                     </button>
                   </div>
                 </div>
-              </Page>
+              </BookPage>
 
-              {/* ====== CONDITIONAL: Extra Detail Page (strategic/financial/critical/many pain points) ====== */}
-              {needsExtraDetail && (
-                <Page className="bg-[#f4f0e9] p-0 overflow-hidden">
-                  <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
-                    <SectionBadge number="06+" label="Deep Dive Required" />
-                    <PageTitle>
-                      Your context suggests
-                      <br />
-                      <span className="italic text-[#C48C56]">deeper analysis.</span>
-                    </PageTitle>
+              {/* ====== DEEP DIVE PAGE (always rendered, adapts content) ====== */}
+              <BookPage className="bg-[#f4f0e9] p-0 overflow-hidden">
+                <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
+                  <SectionBadge number="06+" label="Deep Dive" />
+                  <PageTitle>
+                    {needsExtraDetail ? (
+                      <>
+                        Your context suggests
+                        <br />
+                        <span className="italic text-[#C48C56]">deeper analysis.</span>
+                      </>
+                    ) : (
+                      <>
+                        Strengthen your
+                        <br />
+                        <span className="italic text-[#C48C56]">decision model.</span>
+                      </>
+                    )}
+                  </PageTitle>
 
-                    <div className="bg-[#C48C56]/10 border border-[#C48C56]/20 rounded-lg px-4 py-3 mb-4">
-                      <p className="text-[12px] leading-6 text-[#5f5851] font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                        {form.decisionCategory === "strategic"
-                          ? "Strategic decisions have long-lasting effects. The AI agent detected this and is requesting additional scenario data."
-                          : form.decisionCategory === "financial"
-                          ? "Financial decisions require sensitivity analysis. Please provide additional data points for a more robust model."
-                          : form.urgency === "critical"
-                          ? "Critical urgency detected. The agent needs to understand fallback positions to provide responsible guidance."
-                          : "Multiple pain points detected. The causal graph is complex -- additional context will improve accuracy."}
-                      </p>
-                    </div>
-
-                    <div className="flex-1 space-y-4">
-                      <div className="space-y-1.5">
-                        <FieldLabel>What happens if you do nothing?</FieldLabel>
-                        <StyledTextarea
-                          placeholder="Describe the status quo trajectory..."
-                          rows={2}
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <FieldLabel>Worst realistic outcome</FieldLabel>
-                        <StyledTextarea
-                          placeholder="What is the worst-case you could live with?"
-                          rows={2}
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <FieldLabel>Who else has faced a similar decision?</FieldLabel>
-                        <StyledInput
-                          placeholder="Reference points -- competitors, case studies, mentors..."
-                        />
-                      </div>
-
-                      <Separator className="bg-[#d9d1c5]" />
-
-                      <p className="text-[11px] text-[#8a8178] italic" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                        This additional context strengthens the causal model. Flip to see your analysis.
-                      </p>
-                    </div>
+                  <div className="bg-[#C48C56]/10 border border-[#C48C56]/20 rounded-lg px-4 py-3 mb-4">
+                    <p className="text-[12px] leading-6 text-[#5f5851] font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                      {deepDiveMessage}
+                    </p>
                   </div>
-                </Page>
-              )}
+
+                  <div className="flex-1 space-y-4">
+                    <div className="space-y-1.5">
+                      <FieldLabel htmlFor="pred-deepDiveDoNothing">What happens if you do nothing?</FieldLabel>
+                      <StyledTextarea
+                        id="pred-deepDiveDoNothing"
+                        placeholder="Describe the status quo trajectory..."
+                        value={form.deepDiveDoNothing}
+                        onChange={(e) => updateField("deepDiveDoNothing", e.target.value)}
+                        rows={2}
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <FieldLabel htmlFor="pred-deepDiveWorstCase">Worst realistic outcome</FieldLabel>
+                      <StyledTextarea
+                        id="pred-deepDiveWorstCase"
+                        placeholder="What is the worst-case you could live with?"
+                        value={form.deepDiveWorstCase}
+                        onChange={(e) => updateField("deepDiveWorstCase", e.target.value)}
+                        rows={2}
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <FieldLabel htmlFor="pred-deepDiveReference">Who else has faced a similar decision?</FieldLabel>
+                      <StyledInput
+                        id="pred-deepDiveReference"
+                        placeholder="Reference points -- competitors, case studies, mentors..."
+                        value={form.deepDiveReference}
+                        onChange={(e) => updateField("deepDiveReference", e.target.value)}
+                      />
+                    </div>
+
+                    <Separator className="bg-[#d9d1c5]" />
+
+                    <p className="text-[11px] text-[#8a8178] italic" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                      This additional context strengthens the causal model. Flip to see your analysis.
+                    </p>
+                  </div>
+                </div>
+              </BookPage>
 
               {/* ====== ANALYSIS PAGE 1: Causal Insights ====== */}
-              <Page className="bg-[#181512] text-[#F2EFEA] p-0 overflow-hidden">
+              <BookPage className="bg-[#181512] text-[#F2EFEA] p-0 overflow-hidden">
                 <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
-                  <SectionBadge number="R1" label="Causal Analysis" />
+                  <div className="inline-flex items-center gap-3 text-[10px] uppercase tracking-[0.14em] text-[#8a8178] mb-6" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    <span className="inline-block h-[5px] w-[5px] rounded-full bg-[#C48C56]" />
+                    R1 &mdash; Causal Analysis
+                  </div>
                   <h2
                     className="text-[1.5rem] sm:text-[1.8rem] leading-[1.05] tracking-[-0.03em] text-[#F2EFEA] mb-4"
                     style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 300 }}
@@ -1072,8 +1089,7 @@ export default function AIAgentPredictorBook() {
                       </p>
                     </div>
                   ) : (
-                    <div className="flex-1 space-y-4">
-                      {/* Decision Summary */}
+                    <div className="flex-1 space-y-4 overflow-y-auto">
                       <div className="bg-white/5 border border-white/10 rounded-lg px-4 py-3">
                         <p className="text-[10px] uppercase tracking-[0.14em] text-[#C48C56] mb-1.5" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           Decision
@@ -1083,7 +1099,6 @@ export default function AIAgentPredictorBook() {
                         </p>
                       </div>
 
-                      {/* Category Advice */}
                       <div className="bg-[#2F5D50]/15 border border-[#2F5D50]/20 rounded-lg px-4 py-3">
                         <p className="text-[10px] uppercase tracking-[0.14em] text-[#2F5D50] mb-1.5" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           Category Insight
@@ -1093,7 +1108,6 @@ export default function AIAgentPredictorBook() {
                         </p>
                       </div>
 
-                      {/* Causal Factors */}
                       <div>
                         <p className="text-[10px] uppercase tracking-[0.14em] text-[#C48C56] mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           Causal Pathways Identified
@@ -1112,7 +1126,6 @@ export default function AIAgentPredictorBook() {
                         </div>
                       </div>
 
-                      {/* Urgency Note */}
                       <div className="bg-white/5 border border-white/10 rounded-lg px-4 py-3">
                         <p className="text-[10px] uppercase tracking-[0.14em] text-[#8a8178] mb-1.5" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           Timing
@@ -1124,17 +1137,20 @@ export default function AIAgentPredictorBook() {
                     </div>
                   )}
                 </div>
-              </Page>
+              </BookPage>
 
-              {/* ====== ANALYSIS PAGE 2: Option Scoring & Risk ====== */}
-              <Page className="bg-[#181512] text-[#F2EFEA] p-0 overflow-hidden">
+              {/* ====== ANALYSIS PAGE 2: Option Scoring ====== */}
+              <BookPage className="bg-[#181512] text-[#F2EFEA] p-0 overflow-hidden">
                 <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
-                  <SectionBadge number="R2" label="Option Scoring" />
+                  <div className="inline-flex items-center gap-3 text-[10px] uppercase tracking-[0.14em] text-[#8a8178] mb-6" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    <span className="inline-block h-[5px] w-[5px] rounded-full bg-[#C48C56]" />
+                    R2 &mdash; Option Scoring
+                  </div>
                   <h2
                     className="text-[1.5rem] sm:text-[1.8rem] leading-[1.05] tracking-[-0.03em] text-[#F2EFEA] mb-4"
                     style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 300 }}
                   >
-                    Scored options &
+                    Scored options &amp;
                     <br />
                     <span className="italic text-[#C48C56]">risk assessment.</span>
                   </h2>
@@ -1146,8 +1162,7 @@ export default function AIAgentPredictorBook() {
                       </p>
                     </div>
                   ) : (
-                    <div className="flex-1 space-y-4">
-                      {/* Option Scores */}
+                    <div className="flex-1 space-y-3 overflow-y-auto">
                       {analysis.optionInsights.map((opt, i) => (
                         <div key={i} className="bg-white/5 border border-white/10 rounded-lg px-4 py-3">
                           <div className="flex items-center justify-between mb-2">
@@ -1161,7 +1176,7 @@ export default function AIAgentPredictorBook() {
                               {opt.score}
                             </span>
                           </div>
-                          <p className="text-[12px] leading-5 text-[#F2EFEA]/60 font-light mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          <p className="text-[11px] leading-5 text-[#F2EFEA]/60 font-light mb-2 line-clamp-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                             {opt.value}
                           </p>
                           <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
@@ -1178,7 +1193,6 @@ export default function AIAgentPredictorBook() {
 
                       <Separator className="bg-white/10" />
 
-                      {/* Risk Assessment */}
                       <div className="bg-white/5 border border-white/10 rounded-lg px-4 py-3">
                         <div className="flex items-center justify-between mb-2">
                           <p className="text-[10px] uppercase tracking-[0.14em] text-[#8a8178]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
@@ -1202,13 +1216,12 @@ export default function AIAgentPredictorBook() {
                         </p>
                       </div>
 
-                      {/* Top Recommendation */}
                       {analysis.topOption && (
                         <div className="bg-[#2F5D50]/15 border border-[#2F5D50]/25 rounded-lg px-4 py-3">
                           <p className="text-[10px] uppercase tracking-[0.14em] text-[#2F5D50] mb-1.5" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                             AI Recommendation
                           </p>
-                          <p className="text-[13px] leading-6 text-[#F2EFEA]/80 font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          <p className="text-[12px] leading-6 text-[#F2EFEA]/80 font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                             Based on your priorities and context, <strong className="text-[#2F5D50]">{analysis.topOption.label}</strong> scores
                             highest at {analysis.topOption.score}/100. Consider this as your primary path forward.
                           </p>
@@ -1217,10 +1230,10 @@ export default function AIAgentPredictorBook() {
                     </div>
                   )}
                 </div>
-              </Page>
+              </BookPage>
 
               {/* ====== BACK COVER ====== */}
-              <Page className="bg-[#181512] text-[#F2EFEA] p-0 overflow-hidden">
+              <BookPage className="bg-[#181512] text-[#F2EFEA] p-0 overflow-hidden">
                 <div className="relative w-full h-full flex flex-col justify-between" style={{ minHeight: "100%" }}>
                   <div className="absolute inset-0 bg-gradient-to-tl from-[#2F5D50]/15 via-[#181512] to-[#181512]" />
                   <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
@@ -1262,7 +1275,7 @@ export default function AIAgentPredictorBook() {
                     </div>
                   </div>
                 </div>
-              </Page>
+              </BookPage>
             </HTMLFlipBook>
           </div>
 
@@ -1315,16 +1328,9 @@ export default function AIAgentPredictorBook() {
       </div>
 
       <style jsx global>{`
-        .page-content {
+        .predictor-page-content {
           background: #f4f0e9;
           box-shadow: inset 0 0 30px rgba(0,0,0,0.03);
-        }
-        .stf__parent {
-          margin: 0 auto;
-        }
-        .stf__wrapper {
-          box-shadow: 0 20px 60px rgba(24,21,18,0.15), 0 4px 16px rgba(24,21,18,0.08);
-          border-radius: 4px;
         }
       `}</style>
     </section>
