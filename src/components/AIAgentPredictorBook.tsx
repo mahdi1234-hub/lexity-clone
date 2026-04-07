@@ -4,7 +4,6 @@ import React, {
   useRef,
   useState,
   useCallback,
-  useEffect,
   forwardRef,
   useMemo,
 } from "react";
@@ -440,12 +439,15 @@ export default function AIAgentPredictorBook() {
     }));
   };
 
-  const handleSubmit = () => {
-    setSubmitted(true);
-    goNext();
-  };
+  const [analysis, setAnalysis] = useState<ReturnType<typeof generateAnalysis> | null>(null);
 
-  const analysis = useMemo(() => generateAnalysis(form), [form]);
+  const handleSubmit = () => {
+    const result = generateAnalysis(form);
+    setAnalysis(result);
+    setSubmitted(true);
+    // Small delay to ensure state is set before flipping
+    setTimeout(() => goNext(), 50);
+  };
 
   const stepCompletion = useMemo(() => {
     return {
@@ -457,25 +459,6 @@ export default function AIAgentPredictorBook() {
       step6: !!(form.priorities.length > 0),
     };
   }, [form]);
-
-  /* Stop form element interactions from triggering flipbook page flips */
-  const sectionRef = useRef<HTMLElement>(null);
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
-    const formSelectors = "input, textarea, select, button, label, [role='combobox'], [role='listbox'], [role='option'], [data-radix-collection-item]";
-    const handler = (e: Event) => {
-      const target = e.target as HTMLElement;
-      if (target.closest(formSelectors)) {
-        e.stopPropagation();
-      }
-    };
-    const events = ["mousedown", "mousemove", "mouseup", "touchstart", "touchmove", "touchend", "pointerdown", "pointermove", "pointerup"];
-    events.forEach((evt) => section.addEventListener(evt, handler, true));
-    return () => {
-      events.forEach((evt) => section.removeEventListener(evt, handler, true));
-    };
-  }, []);
 
   const agentMessage = useMemo(() => {
     if (!form.decisionTitle) return "Start by describing the decision you are facing. I will guide you through a structured causal analysis.";
@@ -501,7 +484,7 @@ export default function AIAgentPredictorBook() {
   }, [form.decisionCategory, form.urgency, form.painPoints]);
 
   return (
-    <section ref={sectionRef} id="ai-predictor" className="relative border-b border-[#d9d1c5] bg-[#f4f0e9] overflow-hidden">
+    <section id="ai-predictor" className="relative border-b border-[#d9d1c5] bg-[#f4f0e9] overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(196,140,86,0.06),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(47,93,80,0.04),transparent_24%)]" />
       </div>
@@ -609,7 +592,7 @@ export default function AIAgentPredictorBook() {
               style={{}}
               startPage={0}
               clickEventForward={false}
-              useMouseEvents
+              useMouseEvents={false}
               swipeDistance={80}
               showPageCorners
               disableFlipByClick
@@ -1198,7 +1181,7 @@ export default function AIAgentPredictorBook() {
                     <span className="italic text-[#2F5D50]">insights.</span>
                   </h2>
 
-                  {!submitted ? (
+                  {!submitted || !analysis ? (
                     <div className="flex-1 flex items-center justify-center">
                       <p className="text-[14px] text-[#F2EFEA]/40 text-center font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                         Complete the form and submit to see your analysis.
@@ -1271,7 +1254,7 @@ export default function AIAgentPredictorBook() {
                     <span className="italic text-[#C48C56]">risk assessment.</span>
                   </h2>
 
-                  {!submitted ? (
+                  {!submitted || !analysis ? (
                     <div className="flex-1 flex items-center justify-center">
                       <p className="text-[14px] text-[#F2EFEA]/40 text-center font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                         Submit the form to see option scores.
@@ -1364,7 +1347,7 @@ export default function AIAgentPredictorBook() {
                     <span className="italic text-[#2F5D50]">next steps.</span>
                   </h2>
 
-                  {!submitted ? (
+                  {!submitted || !analysis ? (
                     <div className="flex-1 flex items-center justify-center">
                       <p className="text-[14px] text-[#F2EFEA]/40 text-center font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                         Submit the form to see recommendations.
