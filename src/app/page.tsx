@@ -141,6 +141,17 @@ export default function LandingPage() {
             Continue with Google
           </button>
 
+          <button
+            onClick={() => router.push("/forecast")}
+            className="card-flashlight mt-4 inline-flex items-center gap-3 bg-[#C48C56]/30 backdrop-blur-xl text-white px-8 py-4 rounded-full text-lg font-medium transition-all hover:scale-105 hover:bg-[#C48C56]/50 border border-[#C48C56]/40 cursor-pointer"
+            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          >
+            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+            </svg>
+            Solar Energy Forecast
+          </button>
+
           {/* Product Guide Chat Bar */}
           <div className="mt-10 w-full max-w-xl mx-auto">
             {chatOpen && chatMessages.length > 0 && (
