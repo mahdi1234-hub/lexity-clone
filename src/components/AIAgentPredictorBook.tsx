@@ -1166,14 +1166,14 @@ export default function AIAgentPredictorBook() {
               </BookPage>
 
               {/* ====== ANALYSIS PAGE 1: Causal Insights ====== */}
-              <BookPage className="bg-[#181512] text-[#F2EFEA] p-0 overflow-hidden">
+              <BookPage className="bg-[#f4f0e9] p-0 overflow-hidden">
                 <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
                   <div className="inline-flex items-center gap-3 text-[10px] uppercase tracking-[0.14em] text-[#8a8178] mb-6" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     <span className="inline-block h-[5px] w-[5px] rounded-full bg-[#C48C56]" />
                     R1 &mdash; 🧠 Causal Analysis
                   </div>
                   <h2
-                    className="text-[1.5rem] sm:text-[1.8rem] leading-[1.05] tracking-[-0.03em] text-[#F2EFEA] mb-4"
+                    className="text-[1.5rem] sm:text-[1.8rem] leading-[1.05] tracking-[-0.03em] text-[#181512] mb-4"
                     style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 300 }}
                   >
                     Key causal
@@ -1183,41 +1183,41 @@ export default function AIAgentPredictorBook() {
 
                   {!submitted || !analysis ? (
                     <div className="flex-1 flex items-center justify-center">
-                      <p className="text-[14px] text-[#F2EFEA]/40 text-center font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                      <p className="text-[14px] text-[#8a8178] text-center font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                         Complete the form and submit to see your analysis.
                       </p>
                     </div>
                   ) : (
                     <div className="flex-1 space-y-4 overflow-y-auto">
-                      <div className="bg-white/5 border border-white/10 rounded-lg px-4 py-3">
+                      <div className="bg-white border border-[#d9d1c5] rounded-lg px-4 py-3">
                         <p className="text-[10px] uppercase tracking-[0.14em] text-[#C48C56] mb-1.5" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                          Decision
+                          📋 Decision
                         </p>
-                        <p className="text-[13px] leading-6 text-[#F2EFEA] font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        <p className="text-[14px] leading-6 text-[#000] font-medium" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           {form.decisionTitle || "Untitled decision"}
                         </p>
                       </div>
 
-                      <div className="bg-[#2F5D50]/15 border border-[#2F5D50]/20 rounded-lg px-4 py-3">
+                      <div className="bg-[#2F5D50]/10 border border-[#2F5D50]/20 rounded-lg px-4 py-3">
                         <p className="text-[10px] uppercase tracking-[0.14em] text-[#2F5D50] mb-1.5" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                          Category Insight
+                          🏷️ Category Insight
                         </p>
-                        <p className="text-[12px] leading-6 text-[#F2EFEA]/95 font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        <p className="text-[13px] leading-6 text-[#000] font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           {analysis.categoryAdvice}
                         </p>
                       </div>
 
                       <div>
                         <p className="text-[10px] uppercase tracking-[0.14em] text-[#C48C56] mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                          Causal Pathways Identified
+                          🔗 Causal Pathways Identified
                         </p>
                         <div className="space-y-2">
                           {analysis.causalFactors.map((cf, i) => (
-                            <div key={i} className="flex gap-2.5">
+                            <div key={i} className="flex gap-2.5 bg-white border border-[#d9d1c5] rounded-lg px-3 py-2">
                               <div className="flex-shrink-0 mt-1.5">
                                 <div className="w-1.5 h-1.5 rounded-full bg-[#C48C56]" />
                               </div>
-                              <p className="text-[12px] leading-6 text-[#F2EFEA]/90 font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              <p className="text-[13px] leading-6 text-[#000] font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                                 {cf}
                               </p>
                             </div>
@@ -1225,11 +1225,11 @@ export default function AIAgentPredictorBook() {
                         </div>
                       </div>
 
-                      <div className="bg-white/5 border border-white/10 rounded-lg px-4 py-3">
+                      <div className="bg-white border border-[#d9d1c5] rounded-lg px-4 py-3">
                         <p className="text-[10px] uppercase tracking-[0.14em] text-[#8a8178] mb-1.5" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                          Timing
+                          ⏰ Timing
                         </p>
-                        <p className="text-[12px] leading-6 text-[#F2EFEA]/90 font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        <p className="text-[13px] leading-6 text-[#000] font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           {analysis.urgencyNote}
                         </p>
                       </div>
@@ -1239,14 +1239,14 @@ export default function AIAgentPredictorBook() {
               </BookPage>
 
               {/* ====== ANALYSIS PAGE 2: Option Scoring ====== */}
-              <BookPage className="bg-[#181512] text-[#F2EFEA] p-0 overflow-hidden">
+              <BookPage className="bg-[#f4f0e9] p-0 overflow-hidden">
                 <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
                   <div className="inline-flex items-center gap-3 text-[10px] uppercase tracking-[0.14em] text-[#8a8178] mb-6" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     <span className="inline-block h-[5px] w-[5px] rounded-full bg-[#C48C56]" />
                     R2 &mdash; 📈 Option Scoring
                   </div>
                   <h2
-                    className="text-[1.5rem] sm:text-[1.8rem] leading-[1.05] tracking-[-0.03em] text-[#F2EFEA] mb-4"
+                    className="text-[1.5rem] sm:text-[1.8rem] leading-[1.05] tracking-[-0.03em] text-[#181512] mb-4"
                     style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 300 }}
                   >
                     Scored options &amp;
@@ -1256,29 +1256,29 @@ export default function AIAgentPredictorBook() {
 
                   {!submitted || !analysis ? (
                     <div className="flex-1 flex items-center justify-center">
-                      <p className="text-[14px] text-[#F2EFEA]/40 text-center font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                      <p className="text-[14px] text-[#8a8178] text-center font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                         Submit the form to see option scores.
                       </p>
                     </div>
                   ) : (
                     <div className="flex-1 space-y-3 overflow-y-auto">
                       {analysis.optionInsights.map((opt, i) => (
-                        <div key={i} className="bg-white/5 border border-white/10 rounded-lg px-4 py-3">
+                        <div key={i} className="bg-white border border-[#d9d1c5] rounded-lg px-4 py-3">
                           <div className="flex items-center justify-between mb-2">
-                            <p className="text-[10px] uppercase tracking-[0.14em] text-[#C48C56]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                              {opt.label}
+                            <p className="text-[10px] uppercase tracking-[0.14em] text-[#C48C56] font-semibold" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              🏷️ {opt.label}
                             </p>
                             <span
-                              className="text-[18px] font-light text-[#2F5D50]"
+                              className="text-[20px] font-bold text-[#2F5D50]"
                               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                             >
                               {opt.score}
                             </span>
                           </div>
-                          <p className="text-[11px] leading-5 text-[#F2EFEA]/90 font-normal mb-2 line-clamp-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          <p className="text-[13px] leading-5 text-[#000] font-normal mb-2 line-clamp-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                             {opt.value}
                           </p>
-                          <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                          <div className="w-full h-2 bg-[#d9d1c5]/50 rounded-full overflow-hidden">
                             <div
                               className="h-full rounded-full transition-all duration-700"
                               style={{
@@ -1290,39 +1290,39 @@ export default function AIAgentPredictorBook() {
                         </div>
                       ))}
 
-                      <Separator className="bg-white/10" />
+                      <Separator className="bg-[#d9d1c5]" />
 
-                      <div className="bg-white/5 border border-white/10 rounded-lg px-4 py-3">
+                      <div className="bg-white border border-[#d9d1c5] rounded-lg px-4 py-3">
                         <div className="flex items-center justify-between mb-2">
-                          <p className="text-[10px] uppercase tracking-[0.14em] text-[#8a8178]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                            Risk Level
+                          <p className="text-[10px] uppercase tracking-[0.14em] text-[#2C2824] font-semibold" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            ⚠️ Risk Level
                           </p>
                           <span
-                            className={`text-[12px] font-medium px-2 py-0.5 rounded-full ${
+                            className={`text-[13px] font-bold px-3 py-1 rounded-full ${
                               analysis.riskLevel === "High"
-                                ? "bg-red-500/20 text-red-300"
+                                ? "bg-red-100 text-red-700"
                                 : analysis.riskLevel === "Low"
-                                ? "bg-[#2F5D50]/20 text-[#2F5D50]"
-                                : "bg-[#C48C56]/20 text-[#C48C56]"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-amber-100 text-amber-700"
                             }`}
                             style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                           >
                             {analysis.riskLevel}
                           </span>
                         </div>
-                        <p className="text-[12px] leading-6 text-[#F2EFEA]/90 font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        <p className="text-[13px] leading-6 text-[#000] font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                           {analysis.riskNote}
                         </p>
                       </div>
 
                       {analysis.topOption && (
-                        <div className="bg-[#2F5D50]/15 border border-[#2F5D50]/25 rounded-lg px-4 py-3">
-                          <p className="text-[10px] uppercase tracking-[0.14em] text-[#2F5D50] mb-1.5" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                            AI Recommendation
+                        <div className="bg-[#2F5D50]/10 border border-[#2F5D50]/25 rounded-lg px-4 py-3">
+                          <p className="text-[10px] uppercase tracking-[0.14em] text-[#2F5D50] mb-1.5 font-semibold" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            🤖 AI Recommendation
                           </p>
-                          <p className="text-[12px] leading-6 text-[#F2EFEA] font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                            Based on your priorities and context, <strong className="text-[#2F5D50]">{analysis.topOption.label}</strong> scores
-                            highest at {analysis.topOption.score}/100. Consider this as your primary path forward.
+                          <p className="text-[13px] leading-6 text-[#000] font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            Based on your priorities and context, <strong className="text-[#2F5D50] font-bold">{analysis.topOption.label}</strong> scores
+                            highest at <strong className="font-bold">{analysis.topOption.score}/100</strong>. Consider this as your primary path forward.
                           </p>
                         </div>
                       )}
@@ -1332,14 +1332,14 @@ export default function AIAgentPredictorBook() {
               </BookPage>
 
               {/* ====== ANALYSIS PAGE 3: Suggestions, Improvements & Next Steps ====== */}
-              <BookPage className="bg-[#181512] text-[#F2EFEA] p-0 overflow-hidden">
+              <BookPage className="bg-[#f4f0e9] p-0 overflow-hidden">
                 <div className="h-full flex flex-col p-7 sm:p-9 overflow-y-auto">
                   <div className="inline-flex items-center gap-3 text-[10px] uppercase tracking-[0.14em] text-[#8a8178] mb-5" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     <span className="inline-block h-[5px] w-[5px] rounded-full bg-[#2F5D50]" />
                     R3 &mdash; 💡 Recommendations
                   </div>
                   <h2
-                    className="text-[1.4rem] sm:text-[1.6rem] leading-[1.05] tracking-[-0.03em] text-[#F2EFEA] mb-4"
+                    className="text-[1.4rem] sm:text-[1.6rem] leading-[1.05] tracking-[-0.03em] text-[#181512] mb-4"
                     style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 300 }}
                   >
                     Suggestions &amp;
@@ -1349,7 +1349,7 @@ export default function AIAgentPredictorBook() {
 
                   {!submitted || !analysis ? (
                     <div className="flex-1 flex items-center justify-center">
-                      <p className="text-[14px] text-[#F2EFEA]/40 text-center font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                      <p className="text-[14px] text-[#8a8178] text-center font-light" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                         Submit the form to see recommendations.
                       </p>
                     </div>
@@ -1357,14 +1357,14 @@ export default function AIAgentPredictorBook() {
                     <div className="flex-1 space-y-3 overflow-y-auto">
                       {/* Suggestions */}
                       <div>
-                        <p className="text-[10px] uppercase tracking-[0.14em] text-[#C48C56] mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                          AI Suggestions
+                        <p className="text-[10px] uppercase tracking-[0.14em] text-[#C48C56] mb-2 font-semibold" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          💬 AI Suggestions
                         </p>
                         <div className="space-y-1.5">
                           {analysis.suggestions.map((s, i) => (
-                            <div key={i} className="flex gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2">
-                              <span className="text-[#C48C56] text-[10px] mt-0.5 flex-shrink-0">{String(i + 1).padStart(2, "0")}</span>
-                              <p className="text-[11px] leading-5 text-[#F2EFEA]/95 font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            <div key={i} className="flex gap-2 bg-white border border-[#d9d1c5] rounded-lg px-3 py-2">
+                              <span className="text-[#C48C56] text-[11px] mt-0.5 flex-shrink-0 font-bold">{String(i + 1).padStart(2, "0")}</span>
+                              <p className="text-[13px] leading-5 text-[#000] font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                                 {s}
                               </p>
                             </div>
@@ -1375,16 +1375,16 @@ export default function AIAgentPredictorBook() {
                       {/* Key Improvements */}
                       {analysis.improvements.length > 0 && (
                         <div>
-                          <p className="text-[10px] uppercase tracking-[0.14em] text-[#2F5D50] mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                            Key Improvements
+                          <p className="text-[10px] uppercase tracking-[0.14em] text-[#2F5D50] mb-2 font-semibold" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            🔧 Key Improvements
                           </p>
                           <div className="space-y-1.5">
                             {analysis.improvements.slice(0, 4).map((imp, i) => (
-                              <div key={i} className="flex gap-2">
+                              <div key={i} className="flex gap-2 bg-white border border-[#d9d1c5] rounded-lg px-3 py-2">
                                 <div className="flex-shrink-0 mt-1.5">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-[#2F5D50]" />
+                                  <div className="w-2 h-2 rounded-full bg-[#2F5D50]" />
                                 </div>
-                                <p className="text-[11px] leading-5 text-[#F2EFEA]/90 font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                                <p className="text-[13px] leading-5 text-[#000] font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                                   {imp}
                                 </p>
                               </div>
@@ -1393,18 +1393,18 @@ export default function AIAgentPredictorBook() {
                         </div>
                       )}
 
-                      <Separator className="bg-white/10" />
+                      <Separator className="bg-[#d9d1c5]" />
 
                       {/* Next Steps */}
                       <div>
-                        <p className="text-[10px] uppercase tracking-[0.14em] text-[#C48C56] mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                          Recommended Next Steps
+                        <p className="text-[10px] uppercase tracking-[0.14em] text-[#C48C56] mb-2 font-semibold" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          🚀 Recommended Next Steps
                         </p>
                         <div className="space-y-1.5">
                           {analysis.nextSteps.map((ns, i) => (
-                            <div key={i} className="flex gap-2 bg-[#2F5D50]/10 border border-[#2F5D50]/15 rounded-lg px-3 py-2">
-                              <span className="text-[#2F5D50] text-[10px] mt-0.5 flex-shrink-0">&#10003;</span>
-                              <p className="text-[11px] leading-5 text-[#F2EFEA]/95 font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            <div key={i} className="flex gap-2 bg-[#2F5D50]/10 border border-[#2F5D50]/20 rounded-lg px-3 py-2">
+                              <span className="text-[#2F5D50] text-[12px] mt-0.5 flex-shrink-0 font-bold">✓</span>
+                              <p className="text-[13px] leading-5 text-[#000] font-normal" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                                 {ns}
                               </p>
                             </div>
